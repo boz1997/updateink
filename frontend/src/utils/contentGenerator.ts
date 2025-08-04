@@ -271,6 +271,7 @@ const fetchSportsData = async (city: string): Promise<{ sports: Array<Record<str
       return '🏆'; // Default emoji
     };
 
+// 1) Match ve FormattedMatch tip tanımları
 interface Match {
   sport: string;
   title?: string;
@@ -278,6 +279,7 @@ interface Match {
   teams?: string;
   link?: string;
 }
+
 type FormattedMatch = {
   title: string;
   date: string;
@@ -286,22 +288,23 @@ type FormattedMatch = {
   link: string;
 };
 
-const matches: FormattedMatch[] = data.upcomingMatches
-  ? (
-      // upstream veri aslında Record<string, Match[]>
-      Object.values(data.upcomingMatches)
-        .flat()               // Match tipindeki diziler
-        .slice(0, 10)         // ilk 10
-        .map((m) => ({        // her birini Match olarak kabul et
-          title: `${getSportEmoji(m.sport)} ${m.title ?? 'Match'}`,
-          date:  m.date    ?? 'Date not specified',
-          teams: m.teams   ?? 'Teams not specified',
-          sport: m.sport,
-          link:  m.link    ?? '#',
-        }))
-    )
+// … data fetch bloğu …
+
+// 2) İlk olarak raw match listesini Match[] olarak işaretle
+const rawMatches: Match[] = data.upcomingMatches
+  ? (Object.values(data.upcomingMatches).flat() as any as Match[])
   : [];
 
+// 3) Sonra slice ve map aşamasında m artık Match tipi
+const matches: FormattedMatch[] = rawMatches
+  .slice(0, 10)
+  .map((m: Match) => ({
+    title: `${getSportEmoji(m.sport)} ${m.title ?? 'Match'}`,
+    date:  m.date  ?? 'Date not specified',
+    teams: m.teams ?? 'Teams not specified',
+    sport: m.sport,
+    link:  m.link  ?? '#',
+  }));
 return { sports, matches };
   } catch (error) {
     console.error('Sports fetch error:', error);
