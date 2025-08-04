@@ -10,7 +10,7 @@ export interface EmailData {
 
 export const generateEmailContent = async (city: string): Promise<EmailData> => {
   try {
-    console.log('🔄 Fetching data for city:', city);
+    console.log('🔄 Fetching for city:', city);
     
     // Fetch all data for the city with cache headers
     const [weatherData, newsData, eventsData, sportsData] = await Promise.all([
