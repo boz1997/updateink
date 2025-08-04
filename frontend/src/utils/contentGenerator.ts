@@ -273,8 +273,11 @@ const fetchSportsData = async (city: string): Promise<{ sports: Array<Record<str
 
     // Maç verilerini de al - Tip güvenliği için explicit casting
     const matches = data.upcomingMatches ? 
-      Object.values(data.upcomingMatches).flat().slice(0, 10).map((match: any) => {
-        const sport = (match.sport as string) || 'Sport not specified';
+     Object.values(data.upcomingMatches).flat().slice(0, 10).map((match: unknown) => {
+  const matchData = match as Record<string, unknown>;
+  const sport = (matchData.sport as string) || 'Sport not specified';
+  // ...
+})
         const emoji = getSportEmoji(sport);
         return {
           title: `${emoji} ${(match.title as string) || 'Match'}`,
