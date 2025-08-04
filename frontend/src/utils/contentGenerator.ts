@@ -273,18 +273,18 @@ const fetchSportsData = async (city: string): Promise<{ sports: Array<Record<str
 
     // Maç verilerini de al
     const matches = data.upcomingMatches ? 
-  Object.values(data.upcomingMatches).flat().slice(0, 10).map((match: unknown) => {
-    const matchData = match as Record<string, unknown>;
-    const sport = matchData.sport as string || 'Sport not specified';
-    const emoji = getSportEmoji(sport);
-    return {
-      title: `${emoji} ${matchData.title as string || 'Match'}`,
-      date: matchData.date as string || 'Date not specified',
-      teams: matchData.teams as string || 'Teams not specified',
-      sport: sport,
-      link: matchData.link as string || '#'
-    };
-  }) : [];
+      Object.values(data.upcomingMatches).flat().slice(0, 10).map((match: unknown) => {
+        const matchData = match as Record<string, unknown>;
+        const sport = matchData.sport as string || 'Sport not specified';
+        const emoji = getSportEmoji(sport);
+        return {
+          title: `${emoji} ${matchData.title as string || 'Match'}`,
+          date: matchData.date as string || 'Date not specified',
+          teams: matchData.teams as string || 'Teams not specified',
+          sport: sport,
+          link: matchData.link as string || '#'
+        };
+      }) : [];
 
     return { sports, matches };
   } catch (error) {
