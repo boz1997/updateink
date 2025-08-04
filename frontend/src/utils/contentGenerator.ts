@@ -276,9 +276,7 @@ const fetchSportsData = async (city: string): Promise<{ sports: Array<Record<str
      Object.values(data.upcomingMatches).flat().slice(0, 10).map((match: unknown) => {
   const matchData = match as Record<string, unknown>;
   const sport = (matchData.sport as string) || 'Sport not specified';
-  // ...
-})
-        const emoji = getSportEmoji(sport);
+  const emoji = getSportEmoji(sport);
         return {
           title: `${emoji} ${(match.title as string) || 'Match'}`,
           date: (match.date as string) || 'Date not specified',
