@@ -70,11 +70,6 @@ export const generateEmailContent = async (city: string): Promise<EmailData> => 
   try {
     console.log('🔄 Fetching data for city:', city);
     
-    // Mock data kullan (API isteklerini azaltmak için)
-    if (city === 'New York') {
-      return getMockDataForNewYork();
-    }
-    
     // Fetch all data for the city with cache headers
     const [weatherData, newsData, eventsData, sportsData] = await Promise.all([
       fetchWeatherData(city),
