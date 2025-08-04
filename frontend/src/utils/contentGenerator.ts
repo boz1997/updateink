@@ -1,11 +1,11 @@
 // EmailData interface'ini burada tanımla
 export interface EmailData {
   city: string;
-  weather: Record<string, unknown>;
-  news: Array<Record<string, unknown>>;
-  events: Array<Record<string, unknown>>;
-  sports: Array<Record<string, unknown>>;
-  matches: Array<Record<string, unknown>>;
+  weather: WeatherData;  
+  news: NewsItem[];      
+  events: EventItem[];   
+  sports: SportItem[];   
+  matches: MatchItem[]; 
 }
 
 // Weather data interface
