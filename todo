@@ -1,0 +1,16 @@
+1- ✅ yapi degisikligi (gerekli yerlerde ve kontrollu olarak)
+    - cache kontrolune ihtiyacimiz yok. mail gonderirken cache degil, o tarihte data cekilmis mi, yani ayni tarihte data var mi o kontrol edilmeli.
+    ornek olarak: 10.07.2025 tarihinde data cekilmisse, o gun icinde gonderilecek tum maailler icin ayni data kullanilir. ama 11.07 de bir data cekilmemis ise, o gun yeni data cekilip, butun gun o sehir kaydi olan herkese o gunun datasi kullanilmalidir.
+
+2- ✅ subscribe a tiklamadaki islem olabildiginde hizlandirilmalidir.
+3- suanda biliyorsun ki, http://localhost:4000/test-email?city=Orlando bizim her seyimizi karsiliyor. sadece template ve dizayn kotu.
+    ancak onemli olan buradaki kullanilan dosyalar ve fonksiyonlar. bu fonksiyonlara katiyen dokunmani istemiyorum.
+    ayni sekilde;
+    http://localhost:4000/run-email-sending  emailScheduler.ts de  generateEmailHTML  ile mail gonderiyoruz.
+http://localhost:4000/run-data-collection === tum sehirler data.
+http://localhost:4000/collect-city-data?city=Miami === tek bir sehir datasi.
+
+buralarda kullandigimiz fonksiyonlar da hayati onem tasiyor. bunlarin hicbirisine dokunma. bunlar bizim ileride kullanacagimiz sistemin yapitaslari. 
+
+4- ✅ bir teknikbilg.txt file i acmani istiyorum. 3. maddede bahsettigim urllerdeki fonksiyonlarin isimlerini, hanggi sayfada oldugunu tek tek yazmani ne is yaptigini yazmani istiyorum. 
+5- ✅ 3 ve 4 de kullanmadigimiz fonksiyonlari da teknikbilgi.txt dosyasinin sonuna eklemeni ve, artik kullanmadiklarimizi, hangi sayfada ve ne amacla oldugunu yazmani istiyorum.listele yani hepsini kullandigimiz kullanmadigimiz belli olsun ki temizleyebilelim sonra ileride gerekirse.

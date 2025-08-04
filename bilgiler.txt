@@ -1,0 +1,167 @@
+1. Proje Amacı ve Kapsam
+Hedef: Kullanıcının konumuna (IP veya manuel seçime göre) dayalı yerel haber, etkinlik, spor ve hava durumu özetlerini içeren bir e-posta bülteni sunmak.
+
+Kapsam (POC):
+
+Landing-page üzerinden e-posta ve şehir bilgisinin toplanması
+
+Bu bilgilerin hem Supabase veritabanına kaydedilmesi hem de Beehiiv’e abone olarak iletilmesi
+
+(İleriki adımlarda) Cron job ile haber/etkinlik/spor/hava verilerinin çekilmesi, LLM ile filtreleme ve özetleme, Beehiiv üzerinden otomatik bülten yayınlama
+
+2. Kullanılacak Araçlar & Teknolojiler
+Kategori	Araç / Servis	Detaylar
+Frontend Framework	Next.js + React + Tailwind CSS	Hızlı prototip, responsive tasarım
+Backend	Node.js + Express + TypeScript	API endpoint’leri, form işlemleri
+Veritabanı	Supabase (PostgreSQL)	users tablosu: email, city, created_at
+E-posta Aboneliği	Beehiiv	REST API kullanımı, Publication ID ve API Key
+IP Geolocation	ipinfo.io veya ipapi.co	Otomatik şehir tespiti (CORS destekli)
+Haber & İçerik	SerpApi (local news & events)	SerpApi key ile in-app JSON çekimi
+Spor Verisi	SerpApi (ilk POC) / Sportradar	POC için SerpApi, gerekirse Sportradar geçişi
+Hava Durumu	OpenWeatherMap	Saatlik ve günlük tahmin
+LLM Filtreleme	OpenAI Moderation API	“Disgusting” veya uygunsuz içeriklerin atılması
+LLM Özetleme	OpenAI Chat Completions API	Temizlenmiş içeriklerin 2–3 cümleyle özetlenmesi
+
+3. Yükleme & Çevre Kurulumu
+Repo Oluşturma
+
+Yeni GitHub repo aç, main branch’ini koru.
+
+Boilerplate
+
+Next.js + TypeScript şablonunu çek, Tailwind’i projeye ekle.
+
+Express + TS altyapısını src/api klasöründe hazırla.
+
+Çevresel Değişkenler
+
+.env dosyasında tüm API anahtarları ve uç noktaları:
+
+nginx
+Copy
+Edit
+BEEHIIV_API_KEY
+BEEHIIV_PUBLICATION_ID
+SERPAPI_KEY
+NEWSAPI_KEY
+OPENAI_API_KEY
+SUPABASE_URL
+SUPABASE_ANON_KEY
+IPINFO_TOKEN
+OPENWEATHERMAP_KEY
+Supabase Bağlantısı
+
+Supabase CLI ile proje bağla.
+
+users tablosunu aşağıdaki sütunlarla oluştur:
+
+id (uuid, PK)
+
+email (text)
+
+city (text)
+
+created_at (timestamp, default now())
+
+4. Landing-Page & Form Akışı
+IP-based Şehir Tespiti
+
+Sayfa yüklendiğinde tarayıcıdan fetch('https://ipinfo.io/json?token=…') ile şehir al.
+
+Gelen city değerini formun şehir alanına otomatik yaz.
+
+Yanına küçük bir düzenleme ikonu koyarak kullanıcıya manuel düzeltme imkânı ver.
+
+Form Bileşeni
+
+Alanlar:
+
+Şehir: otomatik dolan (readonly=false)
+
+E-posta: kullanıcı girişi
+
+“Abone Ol” butonu
+
+Butona basıldığında form verisini JS ile POST /api/subscribe endpoint’ine gönder.
+
+5. /api/subscribe Endpoint Akışı
+Girdi Kontrolü
+
+Body’den email ve city alın, boşsa 400 döndür.
+
+Supabase’e Kayıt
+
+users tablosuna yeni kayıt ekle.
+
+Beehiiv Aboneliği
+
+Beehiiv REST API’sine POST yaparak aynı e-posta adresini ve city bilgisini gönder.
+
+Başarı / Hata Yanıtı
+
+Her iki işlem de başarılıysa kullanıcıya { success: true }, aksi halde hata mesajı dön.
+
+6. Cron Job & İçerik Çekimi (Sonraki Aşama)
+Zamanlama
+
+Supabase Edge Functions Cron veya Vercel Cron ile 4 saatte bir tetikle.
+
+Veri Çekme
+
+Haber & Etkinlik:
+
+SerpApi’dan engine=news & engine=events sorguları
+
+Spor:
+
+SerpApi ile yetersiz kalırsa Sportradar’a geçiş
+
+Hava Durumu:
+
+OpenWeatherMap saatlik tahmin endpoint’i
+
+LLM İşleme
+
+Filtreleme: Moderation API → uygunsuz içerikleri at
+
+Özetleme: Chat Completions ile temiz içeriği özetle
+
+E-posta İçeriği
+
+Şablon motoru (Handlebars/Liquid) ile weather/news/events/sports bölümlerini birleştir
+
+7. Beehiiv Üzerinden Otomatik Yayın
+Cron tamamlandığında oluşan HTML içeriği Beehiiv’e “draft” olarak upload edip, yayın zamanlamasını ayarla.
+
+Publication ID kullanılarak her periyotta yeni bülten oluşturulur.
+
+8. Test & Değerlendirme
+Manuel Test
+
+Landing-page → form → DB & Beehiiv kontrolü
+
+Entegrasyon Testi
+
+Cron + LLM + email pipeline’ı uçtan uca simüle et
+
+Performans & Hata Senaryoları
+
+Rate-limit, API hataları, eksik veriler için retry ve logging
+
+
+backend/src/utils/simpleTestTemplate.ts == test template i mail
+http://localhost:4000/test-email?city=Miami bu da urli.
+
+http://localhost:4000/run-email-sending  emailScheduler.ts de  generateEmailHTML  ile mail gonderiyoruz.
+http://localhost:4000/run-data-collection === tum sehirler data.
+http://localhost:4000/collect-city-data?city=Miami === tek bir sehir datasi.
+
+# Tüm Miami cache'ini temizle
+curl "http://localhost:4000/clear-cache?city=Miami"
+
+# Sadece Miami events cache'ini temizle
+curl "http://localhost:4000/clear-cache?city=Miami&type=events"
+
+# Tüm cache'i temizle
+curl "http://localhost:4000/clear-cache"
+
