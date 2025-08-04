@@ -12,7 +12,15 @@ export interface Sport {
   source?: string;
   type: 'news' | 'match';
 }
-
+export interface Event {
+  title: string;
+  date: string;
+  venue?: string;
+  link?: string;
+  snippet?: string;
+  thumbnail?: string;
+  location?: string;
+}
 /**
  * Maç verisi interface'i
  */
