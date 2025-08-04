@@ -1,54 +1,124 @@
-// EmailData interface'ini burada tanımla
+export interface WeatherCurrent {
+  temp: number
+  condition: string
+  icon: string
+  humidity: number
+  wind: number
+  pressure: number
+  visibility: number
+}
+
+export interface WeatherHourlyItem {
+  time: string
+  temp: number
+  condition: string
+}
+
+export interface WeatherDailyItem {
+  date: string
+  temp: number
+  condition: string
+}
+
+export interface WeatherData {
+  current: WeatherCurrent
+  hourly: WeatherHourlyItem[]
+  daily: WeatherDailyItem[]
+}
+
+// 2) Haber öğesi
+export interface NewsItem {
+  title: string
+  summary: string
+  link: string
+  isRelevant?: boolean
+  isAppropriate?: boolean
+}
+
+// 3) Etkinlik öğesi
+export interface EventItem {
+  title: string
+  date: string
+  venue: string
+  link: string
+}
+
+// 4) Spor haberi öğesi
+export interface SportItem {
+  title: string
+  summary: string
+  link: string
+  originalTitle?: string
+  isAIProcessed: boolean
+}
+
+// 5) Maç öğesi
+export interface MatchItem {
+  title: string
+  date: string
+  teams: string
+  sport: string
+  link: string
+}
+
+// 6) EmailData’yı artık gerçek tiplerle tanımlıyoruz
 export interface EmailData {
-  city: string;
-  weather: Record<string, unknown>;
-  news: Array<Record<string, unknown>>;
-  events: Array<Record<string, unknown>>;
-  sports: Array<Record<string, unknown>>;
-  matches: Array<Record<string, unknown>>;
+  city: string
+  weather: WeatherData
+  news: NewsItem[]
+  events: EventItem[]
+  sports: SportItem[]
+  matches: MatchItem[]
+}
+
+interface Match {
+  sport: string
+  title?: string
+  date?: string
+  teams?: string
+  link?: string
+}
+
+type FormattedMatch = {
+  title: string
+  date: string
+  teams: string
+  sport: string
+  link: string
 }
 
 export const generateEmailContent = async (city: string): Promise<EmailData> => {
   try {
-    console.log('🔄 Fetching for city:', city);
-    
-    // Fetch all data for the city with cache headers
     const [weatherData, newsData, eventsData, sportsData] = await Promise.all([
       fetchWeatherData(city),
       fetchNewsData(city),
       fetchEventsData(city),
       fetchSportsData(city)
-    ]);
+    ])
 
     return {
       city,
       weather: weatherData,
       news: newsData,
       events: eventsData,
-      sports: sportsData.sports || [],
-      matches: sportsData.matches || []
-    };
-  } catch (error) {
-    console.error('Error generating email content:', error);
-    throw error;
-  }
-};
-
-const fetchWeatherData = async (city: string): Promise<Record<string, unknown>> => {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/weather?city=${encodeURIComponent(city)}`, {
-      headers: {
-        'Cache-Control': 'max-age=300' // 5 dakika cache
-      }
-    });
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error);
+      sports: sportsData.sports,
+      matches: sportsData.matches
     }
+  } catch (error) {
+    console.error('Error generating email content:', error)
+    throw error
+  }
+}
 
-    const weather = data.weather;
-    
+const fetchWeatherData = async (city: string) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/weather?city=${encodeURIComponent(city)}`,
+      { headers: { 'Cache-Control': 'max-age=300' } }
+    )
+    const data = await response.json()
+    if (data.error) throw new Error(data.error)
+    const weather = data.weather
     return {
       current: {
         temp: Math.round(weather.current.main.temp),
@@ -57,257 +127,205 @@ const fetchWeatherData = async (city: string): Promise<Record<string, unknown>> 
         humidity: weather.current.main.humidity,
         wind: Math.round(weather.current.wind.speed),
         pressure: weather.current.main.pressure,
-        visibility: Math.round(weather.current.visibility / 1609.34) // Convert meters to miles
+        visibility: Math.round(weather.current.visibility / 1609.34)
       },
-      hourly: weather.forecast?.list?.slice(0, 6).map((hour: Record<string, unknown>) => ({
-        time: new Date((hour.dt as number) * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        temp: Math.round((hour.main as Record<string, unknown>)?.temp as number),
-        condition: ((hour.weather as Record<string, unknown>[])?.[0] as Record<string, unknown>)?.description as string || 'Unknown'
-      })) || [],
-      daily: weather.forecast?.list?.filter((item: Record<string, unknown>, index: number) => index % 8 === 0).slice(0, 3).map((day: Record<string, unknown>) => ({
-        date: new Date((day.dt as number) * 1000).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        temp: Math.round((day.main as Record<string, unknown>)?.temp as number),
-        condition: ((day.weather as Record<string, unknown>[])?.[0] as Record<string, unknown>)?.description as string || 'Unknown'
-      })) || []
-    };
-  } catch (error) {
-    console.error('Weather fetch error:', error);
+      hourly:
+        weather.forecast?.list
+          ?.slice(0, 6)
+          .map((hour: any) => ({
+            time: new Date(hour.dt * 1000).toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit'
+            }),
+            temp: Math.round(hour.main.temp),
+            condition: hour.weather[0]?.description || 'Unknown'
+          })) || [],
+      daily:
+        weather.forecast?.list
+          ?.filter((_: any, i: number) => i % 8 === 0)
+          .slice(0, 3)
+          .map((day: any) => ({
+            date: new Date(day.dt * 1000).toLocaleDateString('en-US', {
+              weekday: 'short',
+              month: 'short',
+              day: 'numeric'
+            }),
+            temp: Math.round(day.main.temp),
+            condition: day.weather[0]?.description || 'Unknown'
+          })) || []
+    }
+  } catch {
+    console.error('Weather fetch error')
     return {
-      current: { temp: 0, condition: 'Data unavailable', icon: '❌', humidity: 0, wind: 0, pressure: 0, visibility: 0 },
+      current: { temp: 0, condition: 'Data unavailable', icon: '❌' },
       hourly: [],
       daily: []
-    };
-  }
-};
-
-const fetchNewsData = async (city: string): Promise<Array<Record<string, unknown>>> => {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/news?city=${encodeURIComponent(city)}`, {
-      headers: {
-        'Cache-Control': 'max-age=600' // 10 dakika cache
-      }
-    });
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error);
     }
-
-    return data.news?.slice(0, 12).map((news: Record<string, unknown>) => ({
-      title: news.title as string || 'No title',
-      summary: news.summary as string || 'No summary',
-      link: news.link as string || '#',
-      isRelevant: news.isRelevant as boolean,
-      isAppropriate: news.isAppropriate as boolean
-    })) || [];
-  } catch (error) {
-    console.error('News fetch error:', error);
-    return [];
   }
-};
+}
 
-// Extract venue information from snippet
+const fetchNewsData = async (city: string) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/news?city=${encodeURIComponent(city)}`,
+      { headers: { 'Cache-Control': 'max-age=600' } }
+    )
+    const data = await response.json()
+    if (data.error) throw new Error(data.error)
+    return (
+      data.news
+        ?.slice(0, 12)
+        .map((n: any) => ({
+          title: n.title || 'No title',
+          summary: n.summary || 'No summary',
+          link: n.link || '#',
+          isRelevant: n.isRelevant,
+          isAppropriate: n.isAppropriate
+        })) || []
+    )
+  } catch {
+    console.error('News fetch error')
+    return []
+  }
+}
+
 const extractVenueFromSnippet = (snippet: string): string => {
-  if (!snippet) return 'Venue not specified';
-  
-  // Farklı venue pattern'lerini kontrol et
+  if (!snippet) return 'Venue not specified'
   const patterns = [
-    /@\s*([^,]+(?:,\s*[^,]+)*)/i,  // @ The Wiltern, Los Angeles, CA
-    /at\s+([^,]+(?:,\s*[^,]+)*)/i,  // at Hollywood Bowl in Los Angeles
-    /showing at\s+([^,]+(?:,\s*[^,]+)*)/i,  // showing at the Exchange LA
-    /in\s+([^,]+(?:,\s*[^,]+)*)/i,  // in Los Angeles
-  ];
-
+    /@\s*([^,]+(?:,\s*[^,]+)*)/i,
+    /at\s+([^,]+(?:,\s*[^,]+)*)/i,
+    /showing at\s+([^,]+(?:,\s*[^,]+)*)/i,
+    /in\s+([^,]+(?:,\s*[^,]+)*)/i
+  ]
   for (const pattern of patterns) {
-    const match = snippet.match(pattern);
-    if (match && match[1]) {
-      return match[1].trim();
-    }
+    const match = snippet.match(pattern)
+    if (match?.[1]) return match[1].trim()
   }
+  return 'Venue not specified'
+}
 
-  return 'Venue not specified';
-};
-
-// Fix date format
 const formatEventDate = (dateString: string): string => {
-  if (!dateString) return 'Date not specified';
-  
+  if (!dateString) return 'Date not specified'
   try {
-    // API'den gelen format: "Thu, Jul 31, 7:00 - 8:30 PM"
-    // Bu formatı parse etmek için özel işlem yapalım
-    if (typeof dateString === 'string' && dateString.includes(',')) {
-      // "Thu, Jul 31, 7:00 - 8:30 PM" formatını parse et
-      const parts = dateString.split(',');
+    if (dateString.includes(',')) {
+      const parts = dateString.split(',')
       if (parts.length >= 2) {
-        const datePart = parts[1].trim(); // "Jul 31"
-        const timePart = parts[2]?.trim() || ''; // "7:00 - 8:30 PM"
-        
-        // Sadece tarih kısmını al
-        const dateOnly = datePart.split(' ')[1]; // "31"
-        const monthOnly = datePart.split(' ')[0]; // "Jul"
-        
-        // 2025 yılını ekle
-        const fullDate = `${monthOnly} ${dateOnly}, 2025`;
-        const date = new Date(fullDate);
-        
-        if (!isNaN(date.getTime())) {
-          return date.toLocaleDateString('tr-TR', {
+        const [_, datePart, timePart = ''] = parts
+        const [monthOnly, dateOnly] = datePart.trim().split(' ')
+        const fullDate = `${monthOnly} ${dateOnly}, 2025`
+        const d = new Date(fullDate)
+        if (!isNaN(d.getTime())) {
+          const formatted = d.toLocaleDateString('tr-TR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
-          }) + (timePart ? ` ${timePart}` : '');
+          })
+          return timePart.trim() ? `${formatted} ${timePart.trim()}` : formatted
         }
       }
     }
-    
-    // Normal date parsing dene
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return 'Date not specified';
-    }
-    return date.toLocaleDateString('en-US', {
+    const d = new Date(dateString)
+    if (isNaN(d.getTime())) return 'Date not specified'
+    return d.toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
-    });
-  } catch (error) {
-    return 'Date not specified';
+    })
+  } catch {
+    return 'Date not specified'
   }
-};
-
-const fetchEventsData = async (city: string): Promise<Array<Record<string, unknown>>> => {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events?city=${encodeURIComponent(city)}`, {
-      headers: {
-        'Cache-Control': 'max-age=600' // 10 dakika cache
-      }
-    });
-    const data = await response.json();
-
-    console.log('🎭 Events API Response:', data);
-    console.log('🎭 Events data:', data.events);
-
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
-    const processedEvents = data.events?.slice(0, 10).map((event: Record<string, unknown>) => {
-      console.log('🎭 Processing event:', event);
-      console.log('🎭 Event date:', event.date, 'Type:', typeof event.date);
-      console.log('🎭 Event venue:', event.venue, 'Type:', typeof event.venue);
-      console.log('🎭 Event snippet:', event.snippet, 'Type:', typeof event.snippet);
-      
-      const formattedDate = formatEventDate(event.date as string);
-      
-      // If venue is an object, get the name property, otherwise extract from snippet
-      let venueName = 'Venue not specified';
-      if (event.venue && typeof event.venue === 'object' && (event.venue as Record<string, unknown>).name) {
-        venueName = (event.venue as Record<string, unknown>).name as string;
-      } else if (event.venue && typeof event.venue === 'string') {
-        venueName = event.venue as string;
-      } else {
-        venueName = extractVenueFromSnippet(event.snippet as string || '');
-      }
-      
-      console.log('🎭 Formatted date:', formattedDate);
-      console.log('🎭 Venue name:', venueName);
-      
-      return {
-        title: event.title as string || 'No event name',
-        date: formattedDate,
-        venue: venueName,
-        link: event.link as string || '#'
-      };
-    }) || [];
-    
-    console.log('🎭 Final processed events:', processedEvents);
-    return processedEvents;
-  } catch (error) {
-    console.error('Events fetch error:', error);
-    return [];
-  }
-};
-
-const fetchSportsData = async (city: string): Promise<{ sports: Array<Record<string, unknown>>; matches: Array<Record<string, unknown>> }> => {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/sports?city=${encodeURIComponent(city)}`, {
-      headers: {
-        'Cache-Control': 'max-age=600' // 10 dakika cache
-      }
-    });
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
-    // AI işlenmiş spor haberlerini kullan
-    const sports = data.sports?.slice(0, 8).map((sport: Record<string, unknown>) => ({
-      title: sport.aiTitle as string || sport.originalTitle as string || 'No sports news title',
-      summary: sport.aiSummary as string || 'No summary',
-      link: sport.link as string || '#',
-      originalTitle: sport.originalTitle as string,
-      isAIProcessed: !!(sport.aiTitle)
-    })) || [];
-
-    // Spor emoji fonksiyonu
-    const getSportEmoji = (sport: string): string => {
-      const sportLower = sport.toLowerCase();
-      if (sportLower.includes('basketball') || sportLower.includes('nba')) return '🏀';
-      if (sportLower.includes('football') || sportLower.includes('nfl')) return '🏈';
-      if (sportLower.includes('baseball') || sportLower.includes('mlb')) return '⚾';
-      if (sportLower.includes('soccer') || sportLower.includes('mls')) return '⚽';
-      if (sportLower.includes('hockey') || sportLower.includes('nhl')) return '🏒';
-      if (sportLower.includes('tennis')) return '🎾';
-      if (sportLower.includes('volleyball')) return '🏐';
-      if (sportLower.includes('golf')) return '⛳';
-      if (sportLower.includes('rugby')) return '🏉';
-      if (sportLower.includes('boxing')) return '🥊';
-      if (sportLower.includes('mma') || sportLower.includes('ufc')) return '🥋';
-      if (sportLower.includes('racing') || sportLower.includes('f1') || sportLower.includes('nascar')) return '🏁';
-      if (sportLower.includes('running') || sportLower.includes('marathon')) return '🏃';
-      return '🏆'; // Default emoji
-    };
-
-// 1) Match ve FormattedMatch tip tanımları
-interface Match {
-  sport: string;
-  title?: string;
-  date?: string;
-  teams?: string;
-  link?: string;
 }
 
-type FormattedMatch = {
-  title: string;
-  date: string;
-  teams: string;
-  sport: string;
-  link: string;
-};
-
-// … data fetch bloğu …
-
-// 2) İlk olarak raw match listesini Match[] olarak işaretle
-const rawMatches: Match[] = data.upcomingMatches
-  ? (Object.values(data.upcomingMatches).flat() as any as Match[])
-  : [];
-
-// 3) Sonra slice ve map aşamasında m artık Match tipi
-const matches: FormattedMatch[] = rawMatches
-  .slice(0, 10)
-  .map((m: Match) => ({
-    title: `${getSportEmoji(m.sport)} ${m.title ?? 'Match'}`,
-    date:  m.date  ?? 'Date not specified',
-    teams: m.teams ?? 'Teams not specified',
-    sport: m.sport,
-    link:  m.link  ?? '#',
-  }));
-return { sports, matches };
-  } catch (error) {
-    console.error('Sports fetch error:', error);
-    return { sports: [], matches: [] };
+const fetchEventsData = async (city: string) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events?city=${encodeURIComponent(city)}`,
+      { headers: { 'Cache-Control': 'max-age=600' } }
+    )
+    const data = await response.json()
+    if (data.error) throw new Error(data.error)
+    return (
+      data.events
+        ?.slice(0, 10)
+        .map((e: any) => {
+          const date = formatEventDate(e.date)
+          let venue = 'Venue not specified'
+          if (e.venue && typeof e.venue === 'object' && e.venue.name) {
+            venue = e.venue.name
+          } else if (typeof e.venue === 'string') {
+            venue = e.venue
+          } else {
+            venue = extractVenueFromSnippet(e.snippet || '')
+          }
+          return {
+            title: e.title || 'No event name',
+            date,
+            venue,
+            link: e.link || '#'
+          }
+        }) || []
+    )
+  } catch {
+    console.error('Events fetch error')
+    return []
   }
-};
+}
+
+const fetchSportsData = async (
+  city: string
+): Promise<{ sports: any[]; matches: FormattedMatch[] }> => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/sports?city=${encodeURIComponent(city)}`,
+      { headers: { 'Cache-Control': 'max-age=600' } }
+    )
+    const data = await response.json()
+    if (data.error) throw new Error(data.error)
+    const sports =
+      data.sports
+        ?.slice(0, 8)
+        .map((s: any) => ({
+          title: s.aiTitle || s.originalTitle || 'No sports news title',
+          summary: s.aiSummary || 'No summary',
+          link: s.link || '#',
+          originalTitle: s.originalTitle,
+          isAIProcessed: Boolean(s.aiTitle)
+        })) || []
+    const rawMatches: Match[] = data.upcomingMatches
+      ? Object.values<Match[]>(data.upcomingMatches).flat()
+      : []
+    const matches: FormattedMatch[] = rawMatches
+      .slice(0, 10)
+      .map(m => ({
+        title: `${getSportEmoji(m.sport)} ${m.title ?? 'Match'}`,
+        date: m.date ?? 'Date not specified',
+        teams: m.teams ?? 'Teams not specified',
+        sport: m.sport,
+        link: m.link ?? '#'
+      }))
+    return { sports, matches }
+  } catch {
+    console.error('Sports fetch error')
+    return { sports: [], matches: [] }
+  }
+}
+
+const getSportEmoji = (sport: string): string => {
+  const s = sport.toLowerCase()
+  if (s.includes('basketball') || s.includes('nba')) return '🏀'
+  if (s.includes('football') || s.includes('nfl')) return '🏈'
+  if (s.includes('baseball') || s.includes('mlb')) return '⚾'
+  if (s.includes('soccer') || s.includes('mls')) return '⚽'
+  if (s.includes('hockey') || s.includes('nhl')) return '🏒'
+  if (s.includes('tennis')) return '🎾'
+  if (s.includes('volleyball')) return '🏐'
+  if (s.includes('golf')) return '⛳'
+  if (s.includes('rugby')) return '🏉'
+  if (s.includes('boxing')) return '🥊'
+  if (s.includes('mma') || s.includes('ufc')) return '🥋'
+  if (s.includes('racing') || s.includes('f1') || s.includes('nascar')) return '🏁'
+  if (s.includes('running') || s.includes('marathon')) return '🏃'
+  return '🏆'
+}
