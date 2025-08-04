@@ -1,69 +1,11 @@
 // EmailData interface'ini burada tanımla
 export interface EmailData {
   city: string;
-  weather: WeatherData;  
-  news: NewsItem[];      
-  events: EventItem[];   
-  sports: SportItem[];   
-  matches: MatchItem[]; 
-}
-
-// Weather data interface
-interface WeatherData {
-  current: {
-    temp: number;
-    condition: string;
-    icon: string;
-    humidity: number;
-    wind: number;
-    pressure: number;
-    visibility: number;
-  };
-  hourly: Array<{
-    time: string;
-    temp: number;
-    condition: string;
-  }>;
-  daily: Array<{
-    date: string;
-    temp: number;
-    condition: string;
-  }>;
-}
-
-// News data interface
-interface NewsItem {
-  title: string;
-  summary: string;
-  link: string;
-  isRelevant: boolean;
-  isAppropriate: boolean;
-}
-
-// Event data interface
-interface EventItem {
-  title: string;
-  date: string;
-  venue: string;
-  link: string;
-}
-
-// Sports data interface
-interface SportItem {
-  title: string;
-  summary: string;
-  link: string;
-  originalTitle?: string;
-  isAIProcessed: boolean;
-}
-
-// Match data interface
-interface MatchItem {
-  title: string;
-  date: string;
-  teams: string;
-  sport: string;
-  link: string;
+  weather: Record<string, unknown>;
+  news: Array<Record<string, unknown>>;
+  events: Array<Record<string, unknown>>;
+  sports: Array<Record<string, unknown>>;
+  matches: Array<Record<string, unknown>>;
 }
 
 export const generateEmailContent = async (city: string): Promise<EmailData> => {
@@ -92,7 +34,7 @@ export const generateEmailContent = async (city: string): Promise<EmailData> => 
   }
 };
 
-const fetchWeatherData = async (city: string): Promise<WeatherData> => {
+const fetchWeatherData = async (city: string): Promise<Record<string, unknown>> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/weather?city=${encodeURIComponent(city)}`, {
       headers: {
@@ -119,13 +61,13 @@ const fetchWeatherData = async (city: string): Promise<WeatherData> => {
       },
       hourly: weather.forecast?.list?.slice(0, 6).map((hour: Record<string, unknown>) => ({
         time: new Date((hour.dt as number) * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        temp: Math.round(hour.main?.temp as number),
-        condition: (hour.weather?.[0] as Record<string, unknown>)?.description as string || 'Unknown'
+        temp: Math.round((hour.main as Record<string, unknown>)?.temp as number),
+        condition: ((hour.weather as Record<string, unknown>[])?.[0] as Record<string, unknown>)?.description as string || 'Unknown'
       })) || [],
       daily: weather.forecast?.list?.filter((item: Record<string, unknown>, index: number) => index % 8 === 0).slice(0, 3).map((day: Record<string, unknown>) => ({
         date: new Date((day.dt as number) * 1000).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        temp: Math.round(day.main?.temp as number),
-        condition: (day.weather?.[0] as Record<string, unknown>)?.description as string || 'Unknown'
+        temp: Math.round((day.main as Record<string, unknown>)?.temp as number),
+        condition: ((day.weather as Record<string, unknown>[])?.[0] as Record<string, unknown>)?.description as string || 'Unknown'
       })) || []
     };
   } catch (error) {
@@ -138,7 +80,7 @@ const fetchWeatherData = async (city: string): Promise<WeatherData> => {
   }
 };
 
-const fetchNewsData = async (city: string): Promise<NewsItem[]> => {
+const fetchNewsData = async (city: string): Promise<Array<Record<string, unknown>>> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/news?city=${encodeURIComponent(city)}`, {
       headers: {
@@ -235,7 +177,7 @@ const formatEventDate = (dateString: string): string => {
   }
 };
 
-const fetchEventsData = async (city: string): Promise<EventItem[]> => {
+const fetchEventsData = async (city: string): Promise<Array<Record<string, unknown>>> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events?city=${encodeURIComponent(city)}`, {
       headers: {
@@ -288,7 +230,7 @@ const fetchEventsData = async (city: string): Promise<EventItem[]> => {
   }
 };
 
-const fetchSportsData = async (city: string): Promise<{ sports: SportItem[]; matches: MatchItem[] }> => {
+const fetchSportsData = async (city: string): Promise<{ sports: Array<Record<string, unknown>>; matches: Array<Record<string, unknown>> }> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/sports?city=${encodeURIComponent(city)}`, {
       headers: {
