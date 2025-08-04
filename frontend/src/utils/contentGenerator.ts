@@ -267,22 +267,21 @@ const fetchSportsData = async (city: string): Promise<{ sports: Array<Record<str
       if (sportLower.includes('boxing')) return '🥊';
       if (sportLower.includes('mma') || sportLower.includes('ufc')) return '🥋';
       if (sportLower.includes('racing') || sportLower.includes('f1') || sportLower.includes('nascar')) return '🏁';
-      if (sportLower.includes('running') || sportLower.includes('marathon')) return '��';
-      return '��'; // Default emoji
+      if (sportLower.includes('running') || sportLower.includes('marathon')) return '🏃';
+      return '🏆'; // Default emoji
     };
 
-    // Maç verilerini de al
+    // Maç verilerini de al - Tip güvenliği için explicit casting
     const matches = data.upcomingMatches ? 
-      Object.values(data.upcomingMatches).flat().slice(0, 10).map((match: unknown) => {
-        const matchData = match as Record<string, unknown>;
-        const sport = matchData.sport as string || 'Sport not specified';
+      (Object.values(data.upcomingMatches) as Record<string, unknown>[]).flat().slice(0, 10).map((match: Record<string, unknown>) => {
+        const sport = (match.sport as string) || 'Sport not specified';
         const emoji = getSportEmoji(sport);
         return {
-          title: `${emoji} ${matchData.title as string || 'Match'}`,
-          date: matchData.date as string || 'Date not specified',
-          teams: matchData.teams as string || 'Teams not specified',
+          title: `${emoji} ${(match.title as string) || 'Match'}`,
+          date: (match.date as string) || 'Date not specified',
+          teams: (match.teams as string) || 'Teams not specified',
           sport: sport,
-          link: matchData.link as string || '#'
+          link: (match.link as string) || '#'
         };
       }) : [];
 
