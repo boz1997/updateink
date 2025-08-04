@@ -271,22 +271,38 @@ const fetchSportsData = async (city: string): Promise<{ sports: Array<Record<str
       return '🏆'; // Default emoji
     };
 
-    // Maç verilerini de al - Tip güvenliği için explicit casting
-    const matches = data.upcomingMatches ? 
-     Object.values(data.upcomingMatches).flat().slice(0, 10).map((match: unknown) => {
-  const matchData = match as Record<string, unknown>;
-  const sport = (matchData.sport as string) || 'Sport not specified';
-  const emoji = getSportEmoji(sport);
-        return {
-          title: `${emoji} ${(match.title as string) || 'Match'}`,
-          date: (match.date as string) || 'Date not specified',
-          teams: (match.teams as string) || 'Teams not specified',
-          sport: sport,
-          link: (match.link as string) || '#'
-        };
-      }) : [];
+interface Match {
+  sport: string;
+  title?: string;
+  date?: string;
+  teams?: string;
+  link?: string;
+}
+type FormattedMatch = {
+  title: string;
+  date: string;
+  teams: string;
+  sport: string;
+  link: string;
+};
 
-    return { sports, matches };
+const matches: FormattedMatch[] = data.upcomingMatches
+  ? (
+      // upstream veri aslında Record<string, Match[]>
+      Object.values(data.upcomingMatches)
+        .flat()               // Match tipindeki diziler
+        .slice(0, 10)         // ilk 10
+        .map((m) => ({        // her birini Match olarak kabul et
+          title: `${getSportEmoji(m.sport)} ${m.title ?? 'Match'}`,
+          date:  m.date    ?? 'Date not specified',
+          teams: m.teams   ?? 'Teams not specified',
+          sport: m.sport,
+          link:  m.link    ?? '#',
+        }))
+    )
+  : [];
+
+return { sports, matches };
   } catch (error) {
     console.error('Sports fetch error:', error);
     return { sports: [], matches: [] };
