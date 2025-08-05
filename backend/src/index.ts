@@ -44,6 +44,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'https://updateink-4xtji78z3-berk-ozs-projects.vercel.app',
       'https://updateink-hmh7qw4uq-berk-ozs-projects.vercel.app',
       'https://updateink-nd9e6Lj0e-berk-ozs-projects.vercel.app',
+      'https://updateink-bis9jph3c-berk-ozs-projects.vercel.app',
       'https://updateink.vercel.app'
     ];
 
@@ -94,6 +95,16 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });
+});
+
+// OPTIONS request handler for CORS preflight
+app.options('*', (req, res) => {
+  console.log('🔧 OPTIONS preflight request received');
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(200).end();
 });
 
 // API Routes - En basit hali
