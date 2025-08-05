@@ -7,6 +7,12 @@ import { getSupabaseClient } from './utils/database';
  * Kullanıcıyı hem yerel veritabanına hem de Beehiiv'e kaydeder
  */
 export const subscribeHandler = async (req: Request, res: Response) => {
+  console.log('📧 Subscribe request received:', { 
+    origin: req.headers.origin,
+    method: req.method,
+    body: req.body 
+  });
+  
   const supabase = getSupabaseClient();
   const { email, city } = req.body;
   

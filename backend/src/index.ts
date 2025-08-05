@@ -33,14 +33,22 @@ if (missingVars.length > 0) {
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// CORS yapılandırması - Environment variable ile
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : [
+      'http://localhost:3000', 
+      'http://127.0.0.1:3000',
+      'https://updateink-4xtji78z3-berk-ozs-projects.vercel.app',
+      'https://updateink-hmh7qw4uq-berk-ozs-projects.vercel.app',
+      'https://updateink-nd9e6Lj0e-berk-ozs-projects.vercel.app',
+      'https://updateink.vercel.app'
+    ];
+
+console.log('🔧 CORS Allowed Origins:', allowedOrigins);
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000', 
-    'http://127.0.0.1:3000',
-    'https://updateink-4xtji78z3-berk-ozs-projects.vercel.app',
-    'https://updateink-hmh7qw4uq-berk-ozs-projects.vercel.app',
-    'https://updateink.vercel.app'
-  ],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
