@@ -98,13 +98,14 @@ export const fetchFromSerpApi = async (
       console.log(`🔍 SerpAPI Debug - Response keys:`, Object.keys(response));
       
       // News results kontrolü
-      if (engine === 'google_news' && response.news_results) {
-        console.log(`🔍 SerpAPI Debug - News results count:`, response.news_results.length);
-        if (response.news_results.length > 0) {
+      if (engine === 'google_news' && (response as any).news_results) {
+        const newsResults = (response as any).news_results;
+        console.log(`🔍 SerpAPI Debug - News results count:`, newsResults.length);
+        if (newsResults.length > 0) {
           console.log(`🔍 SerpAPI Debug - First news item:`, {
-            title: response.news_results[0].title,
-            link: response.news_results[0].link,
-            snippet: response.news_results[0].snippet?.substring(0, 100)
+            title: newsResults[0].title,
+            link: newsResults[0].link,
+            snippet: newsResults[0].snippet?.substring(0, 100)
           });
         }
       }
