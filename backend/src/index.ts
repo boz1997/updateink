@@ -38,8 +38,8 @@ app.use(cors({
     'http://localhost:3000', 
     'http://127.0.0.1:3000',
     'https://updateink-4xtji78z3-berk-ozs-projects.vercel.app',
-    'https://updateink.vercel.app',
-    'https://*.vercel.app'
+    'https://updateink-hmh7qw4uq-berk-ozs-projects.vercel.app',
+    'https://updateink.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
