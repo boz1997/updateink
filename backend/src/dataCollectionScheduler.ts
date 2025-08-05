@@ -190,13 +190,17 @@ export class DataCollectionScheduler {
     console.log(`📊 Collecting fresh data for ${city} on ${today}...`);
 
     try {
-      // Paralel veri toplama
+      // Paralel veri toplama - Azure URL kullan
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net'
+        : 'http://localhost:4000';
+        
       const [weatherResponse, briefResponse, newsResponse, eventsResponse, sportsResponse] = await Promise.all([
-        fetch(`http://localhost:4000/weather-email?city=${encodeURIComponent(city)}`).then(r => r.json()),
-        fetch(`http://localhost:4000/todays-brief?city=${encodeURIComponent(city)}&date=${today}`).then(r => r.json()),
-        fetch(`http://localhost:4000/news?city=${encodeURIComponent(city)}`).then(r => r.json()),
-        fetch(`http://localhost:4000/events?city=${encodeURIComponent(city)}`).then(r => r.json()),
-        fetch(`http://localhost:4000/sports?city=${encodeURIComponent(city)}`).then(r => r.json())
+        fetch(`${baseUrl}/weather-email?city=${encodeURIComponent(city)}`).then(r => r.json()),
+        fetch(`${baseUrl}/todays-brief?city=${encodeURIComponent(city)}&date=${today}`).then(r => r.json()),
+        fetch(`${baseUrl}/news?city=${encodeURIComponent(city)}`).then(r => r.json()),
+        fetch(`${baseUrl}/events?city=${encodeURIComponent(city)}`).then(r => r.json()),
+        fetch(`${baseUrl}/sports?city=${encodeURIComponent(city)}`).then(r => r.json())
       ]);
 
       // Veri yapısını oluştur
