@@ -68,6 +68,9 @@ export const fetchFromSerpApi = async (
 ) => {
   const apiKey = validateApiKey(process.env.SERPAPI_KEY, 'SerpAPI');
   
+  console.log(`🔍 SerpAPI Debug - Engine: ${engine}, Query: "${query}"`);
+  console.log(`🔍 SerpAPI Debug - Additional params:`, additionalParams);
+  
   // Basit query kullan - karmaşık filtreleme kaldırıldı
   const params = {
     engine,
@@ -78,7 +81,40 @@ export const fetchFromSerpApi = async (
     ...additionalParams
   };
   
-  return safeApiCall(API_CONFIG.SERPAPI_BASE_URL, params);
+  console.log(`🔍 SerpAPI Debug - Final params:`, params);
+  
+  const url = `${API_CONFIG.SERPAPI_BASE_URL}`;
+  console.log(`🔍 SerpAPI Debug - Calling URL: ${url}`);
+  
+  try {
+    const response = await safeApiCall(url, params);
+    console.log(`🔍 SerpAPI Debug - Response received:`, {
+      hasData: !!response,
+      responseType: typeof response,
+      keys: response ? Object.keys(response) : 'no response'
+    });
+    
+    if (response && typeof response === 'object') {
+      console.log(`🔍 SerpAPI Debug - Response keys:`, Object.keys(response));
+      
+      // News results kontrolü
+      if (engine === 'google_news' && response.news_results) {
+        console.log(`🔍 SerpAPI Debug - News results count:`, response.news_results.length);
+        if (response.news_results.length > 0) {
+          console.log(`🔍 SerpAPI Debug - First news item:`, {
+            title: response.news_results[0].title,
+            link: response.news_results[0].link,
+            snippet: response.news_results[0].snippet?.substring(0, 100)
+          });
+        }
+      }
+    }
+    
+    return response;
+  } catch (error: any) {
+    console.error(`❌ SerpAPI Debug - Error:`, error.message);
+    throw error;
+  }
 };
 
 /**

@@ -93,19 +93,37 @@ export const getSportsHandler = async (req: Request, res: Response) => {
     // Tek sorgu ile tüm spor verilerini çek (optimize edildi)
     await serpApiThrottle(); // Rate limiting
     const sportsQuery = `${city} sports news events matches schedule`;
+    console.log(`🏈 Sports Debug - Query: "${sportsQuery}"`);
+    
     const response = await fetchFromSerpApi('google_news', sportsQuery, { num: 25 }) as any;
+    console.log(`🏈 Sports Debug - Raw response:`, {
+      hasResponse: !!response,
+      responseType: typeof response,
+      keys: response ? Object.keys(response) : 'no response'
+    });
+    
     const allSportsData = response.news_results || [];
+    console.log(`🏈 Sports Debug - News results:`, {
+      count: allSportsData.length,
+      firstItem: allSportsData.length > 0 ? {
+        title: allSportsData[0].title,
+        link: allSportsData[0].link,
+        snippet: allSportsData[0].snippet?.substring(0, 100)
+      } : 'no items'
+    });
     
     console.log(`📊 Fetched ${allSportsData.length} sports items with single query`);
 
     // AI ile hem haber hem maç verilerini işle - tüm veriyi her ikisi için de kullan
     console.log(`🤖 Processing ${allSportsData.length} items for sports news with AI`);
+    
+    // AI processing'i geri aktif et
     const processedSports = await processSportsWithAI(allSportsData, 10);
+    const processedMatches = await processMatchesWithAI(allSportsData, 15);
 
     // 4. TÜM veriyi maç olarak da işle - AI ayıracak
     console.log(`🤖 Processing ${allSportsData.length} items for matches with AI`);
-    const processedMatches = await processMatchesWithAI(allSportsData, 15); // Daha fazla maç için limit artır
-
+    
     // 5. Maçları kategorilere ayır
     const categorizedMatches = categorizeMatches(processedMatches);
 
