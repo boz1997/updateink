@@ -33,9 +33,14 @@ if (missingVars.length > 0) {
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// CORS yapılandırması
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: [
+    'http://localhost:3000', 
+    'http://127.0.0.1:3000',
+    'https://updateink-4xtji78z3-berk-ozs-projects.vercel.app',
+    'https://updateink.vercel.app',
+    'https://*.vercel.app'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
