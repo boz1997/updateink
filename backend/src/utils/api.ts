@@ -68,30 +68,10 @@ export const fetchFromSerpApi = async (
 ) => {
   const apiKey = validateApiKey(process.env.SERPAPI_KEY, 'SerpAPI');
   
-  // Sadece haber sorguları için negatif kelime filtrelemesi uygula
-  let finalQuery = query;
-  if (engine === 'google_news') {
-    const negativeKeywords = [
-      'death', 'dead', 'died', 'killed', 'murder', 'homicide', 'suicide',
-      'accident', 'crash', 'fatal', 'injury', 'wounded', 'shot', 'stabbed',
-      'disease', 'outbreak', 'epidemic', 'pandemic', 'virus', 'infection',
-      'crime', 'robbery', 'theft', 'assault', 'rape', 'abuse', 'violence',
-      'terrorism', 'bomb', 'explosion', 'fire', 'disaster', 'emergency',
-      'crisis', 'tragedy', 'funeral', 'obituary', 'memorial', 'victim',
-      'suspect', 'arrest', 'jail', 'prison', 'conviction', 'sentence',
-      'protest', 'riot', 'demonstration', 'conflict', 'war', 'battle',
-      'casualty', 'casualties', 'missing', 'disappeared', 'kidnapped',
-      'legionnaires', 'legionella', 'contamination', 'poisoning'
-    ];
-    
-    // Exclude parametresi oluştur (SerpAPI'de -keyword formatı)
-    const excludeQuery = negativeKeywords.map(keyword => `-${keyword}`).join(' ');
-    finalQuery = `${query} ${excludeQuery}`;
-  }
-  
+  // Basit query kullan - karmaşık filtreleme kaldırıldı
   const params = {
     engine,
-    q: finalQuery,
+    q: query,
     api_key: apiKey,
     hl: 'en',
     gl: 'us',

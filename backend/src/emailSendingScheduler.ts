@@ -336,9 +336,9 @@ export class EmailSendingScheduler {
       missing.push('Weather data');
     }
     
-    // Today's brief check
-    if (!data.todaysBrief || data.todaysBrief.length === 0) {
-      missing.push('Today\'s brief');
+    // News check (todaysBrief news'den türetilir)
+    if (!data.news || data.news.length === 0) {
+      missing.push('News data');
     }
     
     // Events check
@@ -346,17 +346,17 @@ export class EmailSendingScheduler {
       missing.push('Events data');
     }
 
-    // Sports check - yeni eklendi
+    // Sports check
     if (!data.sports || (!data.sports.sports?.length && !data.sports.upcomingMatches)) {
       missing.push('Sports data');
     }
     
-    // En az 2 veri kaynağı olmalı (sports dahil)
+    // En az 2 veri kaynağı olmalı
     const hasMinimumData = missing.length <= 2;
     
     console.log(`📊 Data validation details:`);
     console.log(`   Weather: ${data.weather ? '✅' : '❌'} (${JSON.stringify(data.weather).substring(0, 50)}...)`);
-    console.log(`   Today's Brief: ${data.todaysBrief?.length || 0} items (${JSON.stringify(data.todaysBrief).substring(0, 50)}...)`);
+    console.log(`   News: ${data.news?.length || 0} items (${JSON.stringify(data.news).substring(0, 50)}...)`);
     console.log(`   Events: ${data.events?.length || 0} items (${JSON.stringify(data.events).substring(0, 50)}...)`);
     console.log(`   Sports: ${data.sports?.sports?.length || 0} items (${JSON.stringify(data.sports).substring(0, 50)}...)`);
     console.log(`   Missing: ${missing.join(', ') || 'None'}`);

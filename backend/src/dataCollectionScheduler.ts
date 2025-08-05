@@ -276,7 +276,8 @@ export class DataCollectionScheduler {
       { type: 'weather', data: cityData.weather },
       { type: 'news', data: cityData.news },
       { type: 'events', data: cityData.events },
-      { type: 'sports', data: cityData.sports }
+      { type: 'sports', data: cityData.sports },
+      { type: 'todaysBrief', data: cityData.todaysBrief }
     ];
 
     // Önce bugünkü verileri sil (eğer varsa)
