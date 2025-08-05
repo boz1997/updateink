@@ -331,8 +331,8 @@ export class EmailSendingScheduler {
   private validateCachedData(data: CachedCityData): { isValid: boolean, missing: string[] } {
     const missing: string[] = [];
     
-    // Weather check
-    if (!data.weather || (!data.weather.current?.main?.temp && !data.weather.current?.weather?.[0]?.main)) {
+    // Weather check - düzeltilmiş validation
+    if (!data.weather || (!data.weather.current?.main?.temp && !data.weather.current?.weather?.[0]?.main && !data.weather.low && !data.weather.high)) {
       missing.push('Weather data');
     }
     
@@ -347,7 +347,7 @@ export class EmailSendingScheduler {
     }
 
     // Sports check
-    if (!data.sports || (!data.sports.sports?.length && !data.sports.upcomingMatches)) {
+    if (!data.sports || (!data.sports.sports?.length && !data.sports.upcomingMatches && !data.sports.matches?.length)) {
       missing.push('Sports data');
     }
     
@@ -358,7 +358,7 @@ export class EmailSendingScheduler {
     console.log(`   Weather: ${data.weather ? '✅' : '❌'} (${JSON.stringify(data.weather).substring(0, 50)}...)`);
     console.log(`   News: ${data.news?.length || 0} items (${JSON.stringify(data.news).substring(0, 50)}...)`);
     console.log(`   Events: ${data.events?.length || 0} items (${JSON.stringify(data.events).substring(0, 50)}...)`);
-    console.log(`   Sports: ${data.sports?.sports?.length || 0} items (${JSON.stringify(data.sports).substring(0, 50)}...)`);
+    console.log(`   Sports: ${data.sports?.sports?.length || data.sports?.matches?.length || 0} items (${JSON.stringify(data.sports).substring(0, 50)}...)`);
     console.log(`   Missing: ${missing.join(', ') || 'None'}`);
     
     return {
