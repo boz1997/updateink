@@ -66,9 +66,9 @@ export class EmailSendingScheduler {
   public start() {
     console.log('📧 Email Sending Scheduler starting...');
     
-    // Her gün 12:10'da email gönder (veri toplama sonrası) (Türkiye saati)
-    cron.schedule('10 9 * * *', () => {
-      console.log('📧 Daily email sending job triggered at 12:10 PM (TR) / 09:10 AM (UTC)');
+    // Her gün 08:10'da email gönder (veri toplama sonrası) (Türkiye saati)
+    cron.schedule('10 5 * * *', () => { // UTC 05:10 = TR 08:10
+      console.log('📧 Daily email sending job triggered at 08:10 AM (TR) / 05:10 AM (UTC)');
       this.sendDailyEmails();
     }, {
       timezone: 'UTC'
