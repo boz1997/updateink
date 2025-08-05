@@ -286,6 +286,78 @@ app.get('/scheduler-status', (req, res) => {
   });
 });
 
+// API Test endpoints
+app.get('/test-apis', async (req, res) => {
+  try {
+    console.log('🧪 Testing all APIs...');
+    const results = {
+      serpApi: { status: 'pending' as string, error: null as string | null },
+      openWeather: { status: 'pending' as string, error: null as string | null },
+      eventbrite: { status: 'pending' as string, error: null as string | null },
+      gmail: { status: 'pending' as string, error: null as string | null }
+    };
+
+    // Test SerpAPI
+    try {
+      const serpResponse = await fetch(`https://serpapi.com/search?engine=google_news&q=test&api_key=${process.env.SERPAPI_KEY}`);
+      results.serpApi.status = serpResponse.ok ? 'success' : 'failed';
+      if (!serpResponse.ok) {
+        const errorText = await serpResponse.text();
+        results.serpApi.error = `HTTP ${serpResponse.status}: ${errorText}`;
+      }
+    } catch (error: any) {
+      results.serpApi.status = 'failed';
+      results.serpApi.error = error.message;
+    }
+
+    // Test OpenWeather
+    try {
+      const weatherResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=New York&appid=${process.env.WEATHER_API_KEY}&units=imperial`);
+      results.openWeather.status = weatherResponse.ok ? 'success' : 'failed';
+      if (!weatherResponse.ok) {
+        const errorText = await weatherResponse.text();
+        results.openWeather.error = `HTTP ${weatherResponse.status}: ${errorText}`;
+      }
+    } catch (error: any) {
+      results.openWeather.status = 'failed';
+      results.openWeather.error = error.message;
+    }
+
+    // Test Gmail
+    try {
+      const nodemailer = require('nodemailer');
+      const transporter = nodemailer.createTransporter({
+        service: 'gmail',
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD
+        }
+      });
+      
+      // Verify connection
+      await transporter.verify();
+      results.gmail.status = 'success';
+    } catch (error: any) {
+      results.gmail.status = 'failed';
+      results.gmail.error = error.message;
+    }
+
+    console.log('🧪 API Test Results:', results);
+    res.json({
+      success: true,
+      results,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('❌ API Test failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('❌ Unhandled error:', error);
