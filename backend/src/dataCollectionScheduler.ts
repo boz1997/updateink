@@ -44,9 +44,9 @@ export class DataCollectionScheduler {
   public start() {
     console.log('📊 Data Collection Scheduler starting...');
     
-    // Her gün 08:00'da veri toplama (Türkiye saati)
-    cron.schedule('0 5 * * *', () => {
-      console.log('📊 Daily data collection job triggered at 08:00 AM (TR) / 05:00 AM (UTC)');
+    // Her gün 11:45'te veri toplama (Türkiye saati)
+    cron.schedule('45 8 * * *', () => {
+      console.log('📊 Daily data collection job triggered at 11:45 AM (TR) / 08:45 AM (UTC)');
       this.collectDailyData();
     }, {
       timezone: 'UTC'
