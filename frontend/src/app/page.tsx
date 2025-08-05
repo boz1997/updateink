@@ -81,11 +81,11 @@ export default function Home() {
     setError(null);
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/subscribe`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ city: city.trim(), email: email.trim() }),
-      });
+     const res = await fetch(`https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net/subscribe`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ city: city.trim(), email: email.trim() }),
+});
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
