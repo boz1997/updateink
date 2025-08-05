@@ -34,6 +34,8 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // CORS yapılandırması - Environment variable ile
+console.log('🔧 Environment ALLOWED_ORIGINS:', process.env.ALLOWED_ORIGINS);
+
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',') 
   : [
@@ -46,9 +48,25 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
     ];
 
 console.log('🔧 CORS Allowed Origins:', allowedOrigins);
+console.log('🔧 Environment variables loaded:', {
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: process.env.PORT,
+  ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS
+});
 
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    console.log('🔧 CORS Request from origin:', origin);
+    console.log('🔧 Allowed origins:', allowedOrigins);
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      console.log('✅ CORS: Origin allowed');
+      callback(null, true);
+    } else {
+      console.log('❌ CORS: Origin blocked:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -56,6 +74,18 @@ app.use(cors({
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log('📥 Request:', {
+    method: req.method,
+    url: req.url,
+    origin: req.headers.origin,
+    userAgent: req.headers['user-agent'],
+    timestamp: new Date().toISOString()
+  });
+  next();
+});
 
 // Health check endpoint
 app.get('/', (req, res) => {

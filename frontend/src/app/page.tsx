@@ -81,11 +81,17 @@ export default function Home() {
     setError(null);
     
     try {
-     const res = await fetch(`https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net/subscribe`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ city: city.trim(), email: email.trim() }),
-});
+      console.log('🚀 Sending request to backend...');
+      console.log('📧 Request data:', { city: city.trim(), email: email.trim() });
+      
+      const res = await fetch(`https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ city: city.trim(), email: email.trim() }),
+      });
+      
+      console.log('📡 Response status:', res.status);
+      console.log('📡 Response headers:', Object.fromEntries(res.headers.entries()));
       
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
