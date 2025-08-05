@@ -66,20 +66,12 @@ export class EmailSendingScheduler {
   public start() {
     console.log('📧 Email Sending Scheduler starting...');
     
-    // Her gün 08:30'da email gönder (veri toplama sonrası) (Vercel'de aktif edilecek)
-    // cron.schedule('30 8 * * *', () => {
-    //   console.log('📧 Daily email sending job triggered at 08:30 AM');
-    //   this.sendDailyEmails();
-    // }, {
-    //   timezone: 'Europe/Istanbul'
-    // });
-
-    // Bugün 10:35'te email gönderme (veri toplama sonrası)
-    cron.schedule('35 10 * * *', () => {
-      console.log('📧 Email sending job triggered at 10:35 AM');
+    // Her gün 08:07'de email gönder (veri toplama sonrası) (Türkiye saati)
+    cron.schedule('7 5 * * *', () => {
+      console.log('📧 Daily email sending job triggered at 08:07 AM (TR) / 05:07 AM (UTC)');
       this.sendDailyEmails();
     }, {
-      timezone: 'Europe/Istanbul'
+      timezone: 'UTC'
     });
 
     console.log('✅ Email Sending Scheduler started successfully');

@@ -44,20 +44,12 @@ export class DataCollectionScheduler {
   public start() {
     console.log('📊 Data Collection Scheduler starting...');
     
-    // Her gün 07:00'da veri toplama (Vercel'de aktif edilecek)
-    // cron.schedule('0 7 * * *', () => {
-    //   console.log('📊 Daily data collection job triggered at 07:00 AM');
-    //   this.collectDailyData();
-    // }, {
-    //   timezone: 'Europe/Istanbul'
-    // });
-
-    // Bugün 10:30'da veri toplama (test için)
-    cron.schedule('30 10 * * *', () => {
-      console.log('📊 Data collection job triggered at 10:30 AM');
+    // Her gün 08:00'da veri toplama (Türkiye saati)
+    cron.schedule('0 5 * * *', () => {
+      console.log('📊 Daily data collection job triggered at 08:00 AM (TR) / 05:00 AM (UTC)');
       this.collectDailyData();
     }, {
-      timezone: 'Europe/Istanbul'
+      timezone: 'UTC'
     });
 
     console.log('✅ Data Collection Scheduler started successfully');
