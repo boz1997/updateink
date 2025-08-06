@@ -9,12 +9,13 @@ let openaiClient: OpenAI | null = null;
 export const getOpenAIClient = (): OpenAI => {
   if (!openaiClient) {
     const apiKey = process.env.OPENAI_API_KEY;
+    
     if (!apiKey) {
       throw new Error('OpenAI API key is not configured');
     }
     
     openaiClient = new OpenAI({
-      apiKey,
+      apiKey: apiKey.trim(),
     });
   }
   
@@ -65,20 +66,13 @@ export const processNewsWithAI = async (
   
   for (const item of newsToProcess) {
     try {
-      // Manuel negatif içerik kontrolü (AI'dan önce)
-      const titleText = `${item.title} ${item.snippet || ''}`;
-      if (containsNegativeContent(titleText)) {
-        console.log(`🚫 Skipping negative news: ${item.title}`);
-        continue;
-      }
-      
       const prompt = `
 Analyze this news article and evaluate it according to the following STRICT criteria:
 
-News: ${item.title}
-${item.snippet ? `Snippet: ${item.snippet}` : ''}
+News Title: "${item.title}"
+${item.snippet ? `News Snippet: "${item.snippet}"` : ''}
 
-Please respond with a JSON object containing:
+Please respond with a JSON object:
 {
   "isRelevant": true/false,
   "isAppropriate": true/false,
@@ -100,35 +94,20 @@ STRICT CRITERIA:
 4. title: Clean, concise version of the title
 5. summary: Brief, informative summary
 
-BE EXTREMELY STRICT - Only include POSITIVE, UPLIFTING, or NEUTRAL news that makes readers feel good about their city. If there's ANY doubt about negativity, reject the news.
-
-Examples of REJECTED content:
-- "1 dead, 22 sick from Legionnaires' disease"
-- "Crash kills 3 people"
-- "Violent protest in downtown"
-- "Disease outbreak reported"
-
-Examples of ACCEPTED content:
-- "New restaurant opens downtown"
-- "City announces new park project"
-- "Local team wins championship"
-- "Weather forecast for weekend"
-- "New business development announced"
+BE EXTREMELY STRICT - Only include POSITIVE, UPLIFTING, or NEUTRAL news that makes readers feel good about their city.
 `;
 
-      const openai = getOpenAIClient();
-    const completion = await openai.chat.completions.create({
+      const completion = await openai.chat.completions.create({
         model: 'gpt-3.5-turbo',
         messages: [{ role: 'user', content: prompt }],
         temperature: 0.3,
-        max_tokens: 300
+        max_tokens: 200
       });
 
       const response = completion.choices[0]?.message?.content;
       if (response) {
         try {
           const result = JSON.parse(response);
-          
           if (result.isRelevant && result.isAppropriate && result.isPositive) {
             processedNews.push({
               title: result.title || item.title,
@@ -143,13 +122,10 @@ Examples of ACCEPTED content:
           }
         } catch (parseError) {
           console.error('JSON parse error:', parseError);
-          continue;
         }
       }
     } catch (error) {
       console.error('AI processing error:', error);
-      // AI hatası durumunda haberi atla
-      continue;
     }
   }
   
@@ -202,11 +178,7 @@ Respond with only ONE category name: Music, Art, Theatre, Sports, Festivals, Mar
     
     // Geçerli kategorilerden birini döndür
     const validCategories = ['Music', 'Art', 'Theatre', 'Sports', 'Festivals', 'Markets', 'Food', 'Other'];
-    if (category && validCategories.includes(category)) {
-      return category;
-    }
-    
-    return 'Other';
+    return category && validCategories.includes(category) ? category : 'Other';
   } catch (error) {
     console.error('AI category detection error:', error);
     // AI hatası durumunda basit kategori tespiti yap
