@@ -383,15 +383,34 @@ export class EmailScheduler {
         .header-section {
             position: relative;
             height: 200px;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('http://localhost:4000/back.jpg');
-            background-size: cover;
-            background-position: center;
+            /* Email client uyumluluğu için background-image yerine img kullan */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: flex-start;
             padding: 20px 30px;
             color: white;
+            overflow: hidden;
+        }
+        
+        .header-bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        
+        .header-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            z-index: -1;
         }
         
         .header-logo {
@@ -459,11 +478,19 @@ export class EmailScheduler {
         }
         
         .sponsors-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 15px;
+            /* Email client uyumluluğu için table layout */
+            width: 100%;
             max-width: 500px;
             margin: 0 auto;
+        }
+        
+        .sponsor-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            margin-bottom: 15px;
         }
         
         .sponsor-item {
@@ -961,6 +988,9 @@ export class EmailScheduler {
         
         <!-- HEADER WITH BACKGROUND -->
         <div class="header-section">
+            <!-- Email client uyumluluğu için img tag kullan -->
+            <img src="http://localhost:4000/back.jpg" alt="Header Background" class="header-bg-image">
+            <div class="header-overlay"></div>
             <div class="header-logo">INK</div>
             <div class="social-icons">
                 <a href="#" class="social-icon">f</a>

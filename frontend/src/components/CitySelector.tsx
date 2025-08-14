@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { SingleValue } from 'react-select';
 import { US_CITIES, CityOption, searchCities } from '../data/cities';
@@ -27,7 +27,6 @@ export default function CitySelector({
 }: CitySelectorProps) {
   const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
 
-  // Seçili şehri güncelle
   useEffect(() => {
     const city = US_CITIES.find(c => c.value === value);
     if (city) {
@@ -41,12 +40,12 @@ export default function CitySelector({
 
   return (
     <div className={`relative z-[999999] ${className}`}>
-      {/* React Select versiyonu - daha gelişmiş özellikler için */}
       <Select
         options={US_CITIES}
         value={selectedCity}
         onChange={(option) => {
           const cityOption = option as CityOption | null;
+          setSelectedCity(cityOption);
           onChange(cityOption?.value || "");
         }}
         placeholder={placeholder}
@@ -58,7 +57,6 @@ export default function CitySelector({
         loadingMessage={() => "Aranıyor..."}
         menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
         menuPosition="fixed"
-
         styles={{
           control: (base) => ({
             ...base,
@@ -66,17 +64,25 @@ export default function CitySelector({
             borderRadius: "0.75rem",
             borderColor: "rgba(255, 255, 255, 0.3)",
             boxShadow: "none",
-            backgroundColor: "rgba(255, 255, 255, 0.2)",
-            backdropFilter: "blur(8px)",
+            backgroundColor: "white",
             fontSize: "16px",
+            paddingLeft: "40px", 
+            backgroundImage: "url('/location_pin_icon.svg')",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "18px center",
+            backgroundSize: "18px 20px",
             "&:hover": {
               borderColor: "rgba(255, 255, 255, 0.5)",
-              backgroundColor: "rgba(255, 255, 255, 0.25)"
+              backgroundColor: "white",
             },
             "&:focus-within": {
               borderColor: "#bf988a",
               boxShadow: "0 0 0 2px rgba(191, 152, 138, 0.3)"
             }
+          }),
+          valueContainer: (base) => ({
+            ...base,
+            paddingLeft: "8px", // Adjust padding since we added space for icon
           }),
           option: (base, state) => ({
             ...base,
@@ -86,7 +92,7 @@ export default function CitySelector({
                 ? "rgba(37, 99, 235, 0.1)" 
                 : "rgba(255, 255, 255, 1)",
             color: state.isSelected ? "white" : "#1f2937",
-            fontSize: "16px",
+            fontSize: "14px",
             padding: "12px 16px",
             fontWeight: state.isSelected ? "600" : "500",
             "&:hover": {
@@ -110,24 +116,27 @@ export default function CitySelector({
           }),
           placeholder: (base) => ({
             ...base,
-            color: "rgba(255, 255, 255, 0.6)"
+            color: "gray",
+            whiteSpace: "nowrap",
+            overflow: "hidden", 
+            fontSize: "14px"
           }),
           singleValue: (base) => ({
             ...base,
-            color: "white",
+            color: "gray",
             fontWeight: "500"
           }),
           input: (base) => ({
             ...base,
-            color: "white",
+            color: "gray",
             "&::placeholder": {
-              color: "rgba(255, 255, 255, 0.6)"
+              color: "gray"
             }
           }),
           indicatorsContainer: (base) => ({
             ...base,
             "& svg": {
-              color: "rgba(255, 255, 255, 0.7)"
+              color: "gray"
             }
           }),
           clearIndicator: (base) => ({
@@ -150,4 +159,4 @@ export default function CitySelector({
       />
     </div>
   );
-} 
+}

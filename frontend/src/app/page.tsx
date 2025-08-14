@@ -13,6 +13,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [ipLoading, setIpLoading] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emailValid, setEmailValid] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -68,6 +69,18 @@ export default function Home() {
     return () => clearTimeout(timeoutId);
   }, [email]);
 
+  const handleDotClick = (index: number) => {
+    if (index > currentSlide) {
+      setCurrentSlide((prev) => (prev + 1) % testimonials.length);
+    } 
+    else if (index < currentSlide) {
+      setCurrentSlide((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    }
+    else {
+      setCurrentSlide((prev) => (prev + 1) % testimonials.length);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -78,6 +91,7 @@ export default function Home() {
     
     setLoading(true);
     setSuccess(null);
+    setModalOpen(true)
     setError(null);
     
     try {
@@ -100,6 +114,7 @@ export default function Home() {
       const data = await res.json();
       if (data.success) {
         setSuccess("🎉 Successfully subscribed! Your city information has been saved.");
+        setModalOpen(true);
         setEmail("");
         setCity("");
       } else {
@@ -166,15 +181,15 @@ export default function Home() {
   };
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden bg-white">
 
       {/* Background Image */}
       <div 
-        className="relative bg-cover bg-center bg-no-repeat min-h-screen" 
+        className="relative bg-cover bg-center bg-no-repeat min-h-screen pb-16 md:pb-0" 
         style={{
           backgroundImage: `url('/Hero.png')`,
-          height: '100vh',
-          minHeight: '100vh',
+          height: 'auto',
+          minHeight: '90vh',
         }}
       >
 
@@ -195,11 +210,11 @@ export default function Home() {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex items-start pt-8 lg:pt-16 px-4 lg:px-24 -mt-4 md:mt-0">
+        <main className="flex-1 flex items-start pt-8 lg:pt-8 px-4 lg:px-24 -mt-4 md:mt-0">
           <div className="max-w-4xl w-full">
             
             {/* Content and Form */}
-            <div className="text-white space-y-8 text-center lg:text-left lg:backdrop-blur-md lg:p-4 lg:rounded-lg lg:inline-block">
+            <div className="text-white space-y-8 text-center lg:text-left lg:backdrop-blur-xs lg:p-4 lg:rounded-lg lg:inline-block">
               {/* Small Label */}
               <p className="text-gray-300 text-sm font-medium tracking-wide">
                 Location-Based Updates
@@ -219,7 +234,7 @@ export default function Home() {
               {/* Form */}
               <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-3 md:gap-4 max-w-2xl mx-auto lg:mx-0 -mb-16 md:mb-0">
                 {/* City Input */}
-                <div className="relative w-1/2 md:flex-[0.6] lg:flex-1 mx-auto md:mx-0">
+                <div className="relative w-3/4 md:w-[350px] md:flex-[0.6] lg:flex-1 mx-auto md:mx-0 z-10">
                   <CitySelector
                     value={city}
                     onChange={setCity}
@@ -235,28 +250,29 @@ export default function Home() {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-3 md:px-4 py-3 md:py-4 bg-white text-gray-900 placeholder-gray-500 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-update-blue focus:border-transparent text-sm md:text-base"
+                  className="flex-1 px-3 md:px-4 py-3 h-12 md:py-1 bg-white text-gray-900 placeholder-gray-500 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-update-blue focus:border-transparent text-sm md:text-base"
                 />
 
                 {/* Subscribe Button */}
                 <button
                   type="submit"
                   disabled={loading || !city.trim() || !emailValid}
-                  className="w-1/2 md:w-auto mx-auto md:mx-0 px-6 md:px-8 py-3 md:py-4 bg-update-blue text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 mb-4 lg:mb-0 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-1/2 md:w-auto mx-auto md:mx-0 px-6 md:px-8  h-12 align-middle justify-center bg-update-blue text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 mb-4 lg:mb-0 text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Subscribing..." : "Subscribe"}
                 </button>
               </form>
 
               {/* Status Messages */}
-              {success && (
+              {/* {success && (
                 <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-300 text-sm animate-fade-in-up">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">✅</span>
                     <span>{success}</span>
                   </div>
                 </div>
-              )}
+              )} */}
+              
 
               {error && (
                 <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300 text-sm animate-fade-in-up">
@@ -268,15 +284,43 @@ export default function Home() {
               )}
             </div>
           </div>
+          {(success && modalOpen) && (
+            <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50"
+            onClick={() => setModalOpen(false)}>
+              <div className="relative flex items-start gap-3 p-6 bg-white rounded-2xl shadow-lg mx-6 sm:max-w-md h-[200px] animate-fade-in-up"
+              onClick={(e) => e.stopPropagation()} >
+                {/* Green circle with tick */}
+                <div className="absolute -top-12 right-1 w-20 h-20 rounded-full flex items-center justify-center ">
+                  <img
+                    src="/success.svg"
+                    alt="Checkmark icon"
+                    className="w-20 h-20 text-white"
+                  />
+                </div>
+
+                {/* Message text */}
+                <div className="flex flex-col">
+                  <h3 className="text-4xl font-normal text-sky-600">You're in!</h3>
+                  <p className="text-[#3E7DBB] text-lg sm:text-[26px] font-extralight">
+                    Thanks for subscribing. We&apos;re redirecting you to Behiiv — hang tight, it&apos;s just a second!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
         </main>
         </div>
       </div>
 
                     {/* Diagonal Blue Footer Bar */}
-        <div className="relative">
-          <div className="bg-update-blue py-6 transform -skew-y-2 origin-top-left">
-            <div className="max-w-6xl mx-auto pl-0 pr-4 -ml-4 -mr-8">
-              <div className="flex justify-between items-center text-white text-sm md:text-lg lg:text-xl font-normal leading-relaxed whitespace-nowrap h-8 -mt-4 md:mt-0 lg:mt-2">
+        <div className="relative bg-[#FAFAFA]">
+          <div className="bg-update-blue py-2 transform -skew-y-2 origin-top-left">
+            <div className="max-w-6xl mx-auto pl-0 pr-4 -ml-4 -mr-8 marquee-wraper">
+              <div className="flex justify-between items-center text-white text-sm md:text-lg lg:text-xl font-normal leading-relaxed whitespace-nowrap h-8 -mt-2 md:mt-0 lg:mt-1 marquee-content">
+                <span className="text-xs md:text-base lg:text-lg">
+                  Updates from your city.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Highlights from your favorite local teams.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ideas to make the most of your weekend.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;All gathered in one place - curated&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stay connected with your community
+                </span>
                 <span className="text-xs md:text-base lg:text-lg">
                   Updates from your city.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Highlights from your favorite local teams.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ideas to make the most of your weekend.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;All gathered in one place - curated&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stay connected with your community
                 </span>
@@ -286,38 +330,42 @@ export default function Home() {
         </div>
 
       {/* Statistics Section */}
-      <section className="bg-[#FAFAFA] py-16 px-4 lg:px-24 mt-8 md:mt-0">
+      <section className="bg-[#FAFAFA] py-4 px-4 lg:px-24 mt-2 md:mt-0">
         <div className="max-w-6xl mx-auto">
           {/* Section Heading */}
-          <h2 className="text-4xl lg:text-5xl font-bold text-update-blue text-center mb-12">
-            Powering Local Updates Nationwide
+          <h2 className="text-4xl lg:text-5xl font-normal italic text-update-blue text-center mb-12">
+            Powering Local
+            <span className="block lg:inline"> Updates Nationwide</span>
+          </h2>
+          <h2 className="text-4xl lg:text-5xl font-normal italic text-update-blue text-center mb-12">
+            Where Your Neighbors Go to Stay in the Know.
           </h2>
           
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-8"> */}
             {/* Cities Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            {/* <div className="bg-white rounded-lg shadow-lg p-8 text-center">
               <div className="text-5xl font-bold text-update-blue mb-2">200</div>
               <div className="text-gray-700 text-lg">Cities</div>
-            </div>
+            </div> */}
             
             {/* Regions Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            {/* <div className="bg-white rounded-lg shadow-lg p-8 text-center">
               <div className="text-5xl font-bold text-update-blue mb-2">45</div>
               <div className="text-gray-700 text-lg">Regions</div>
-            </div>
+            </div> */}
             
             {/* Subscribers Card */}
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            {/* <div className="bg-white rounded-lg shadow-lg p-8 text-center">
               <div className="text-5xl font-bold text-update-blue mb-2">3.2 M</div>
               <div className="text-gray-700 text-lg">Subscribers</div>
-            </div>
-          </div>
+            </div> */}
+          {/* </div> */}
         </div>
       </section>
 
       {/* What You'll Receive Section */}
-      <section className="bg-white py-8 md:py-12 lg:py-16 px-4 lg:px-24">
+      <section className="bg-white py-4 md:py-8 lg:py-8 px-4 lg:px-24">
         <div className="max-w-6xl mx-auto">
           {/* Mobile Layout - Left Column Layout */}
           <div className="block lg:hidden">
@@ -371,28 +419,34 @@ export default function Home() {
               {/* Bullet Points */}
               <div className="space-y-3">
                 <div className="flex items-start space-x-2">
-                  <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                    </svg>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <img 
+                      src="/Zap.svg" 
+                      alt="Zap icon" 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <p className="text-sm font-normal text-[#202124]">Get daily local news that keeps you informed<br />about what&apos;s happening around you.</p>
                 </div>
                 
                 <div className="flex items-start space-x-2">
-                  <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                    </svg>
+                 <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <img 
+                      src="/Zap.svg" 
+                      alt="Zap icon" 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <p className="text-sm font-normal text-[#202124]">Catch up on local sports highlights, scores,<br />and upcoming games in your area.</p>
                 </div>
                 
                 <div className="flex items-start space-x-2">
-                  <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                    </svg>
+                 <div className="w-8 h-8  rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <img 
+                      src="/Zap.svg" 
+                      alt="Zap icon" 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <p className="text-sm font-normal text-[#202124]">Discover events happening near you—from<br />festivals to neighborhood meetups.</p>
                 </div>
@@ -452,29 +506,35 @@ export default function Home() {
                 {/* Bullet Points */}
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                      </svg>
-                    </div>
+                    <div className="w-8 h-8  rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <img 
+                      src="/Zap.svg" 
+                      alt="Zap icon" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                     <p className="text-base font-normal text-[#202124]">Get daily local news that keeps you informed<br />about what&apos;s happening around you.</p>
                   </div>
                   
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                      </svg>
-                    </div>
+                    <div className="w-8 h-8  rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <img 
+                      src="/Zap.svg" 
+                      alt="Zap icon" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                     <p className="text-base font-normal text-[#202124]">Catch up on local sports highlights, scores,<br />and upcoming games in your area.</p>
                   </div>
                   
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                      </svg>
-                    </div>
+                    <div className="w-8 h-8  rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <img 
+                      src="/Zap.svg" 
+                      alt="Zap icon" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                     <p className="text-base font-normal text-[#202124]">Discover events happening near you—from<br />festivals to neighborhood meetups.</p>
                   </div>
                 </div>
@@ -485,7 +545,7 @@ export default function Home() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="bg-[#FAFAFA] py-16 px-4 lg:px-24">
+      <section className="bg-[#FAFAFA] py-8 px-4 lg:px-24">
         <div className="max-w-6xl mx-auto">
           {/* Section Title */}
           <h2 className="text-3xl lg:text-4xl font-semibold text-[#1A73E8] text-center mb-12">
@@ -494,28 +554,38 @@ export default function Home() {
 
           {/* Testimonials Container */}
           <div className="overflow-hidden relative">
-                        {/* Navigation Arrows - Positioned between cards (hidden on mobile) */}
-            <button
-              onClick={handlePrevClick}
-              className="hidden md:block absolute left-[27%] top-1/2 transform -translate-y-1/2 z-10 bg-white hover:bg-gray-100 text-[#3E7DBB] hover:text-[#3E7DBB] rounded-full p-3 shadow-lg border-2 border-[#3E7DBB] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3E7DBB]"
-              aria-label="Previous testimonial"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            
-            <button
-              onClick={handleNextClick}
-              className="hidden md:block absolute right-[27%] top-1/2 transform -translate-y-1/2 z-10 bg-white hover:bg-gray-100 text-[#3E7DBB] hover:text-[#3E7DBB] rounded-full p-3 shadow-lg border-2 border-[#3E7DBB] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3E7DBB]"
-              aria-label="Next testimonial"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            </button>
+            <div className="hidden md:flex animate-marquee py-8 space-x-8 md:space-x-20">
+            {[...testimonials, ...testimonials].map((testimonial, index) => (
+              <div key={index} className="w-72 md:w-96 h-72 md:h-72 flex-shrink-0">
+                <div className="relative bg-white p-6 h-full" style={{ borderRadius: '10px 10px 10px 60px' }}>
+                  <div className="absolute inset-0 rounded-[6px_6px_6px_56px]" style={{ 
+                    background: 'linear-gradient(to bottom, #3E7DBB, rgba(62, 125, 187, 0))',
+                    borderRadius: '10px 10px 10px 60px',
+                    padding: '4px',
+                    zIndex: -1,
+                    margin: '-4px'
+                  }}></div>
+                  <div className="flex justify-start mb-3">
+                    <div className="flex space-x-1">
+                      {Array(5).fill(0).map((_, i) => <span key={i} className="text-yellow-400 text-lg">⭐</span>)}
+                    </div>
+                  </div>
+                  <p className="text-gray-700 text-sm mb-4 leading-relaxed">{testimonial.quote}</p>
+                  <div className="flex items-center justify-start">
+                    <div className="bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center text-white font-bold mr-2 text-sm">
+                      {testimonial.initials}
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-gray-800 text-sm">{testimonial.author}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-            <div className="flex flex-col justify-center items-center py-8">
+
+            <div className="flex flex-col justify-center items-center py-8 md:hidden">
               <div 
                 className="flex items-center space-x-8 md:space-x-20 relative"
                 onTouchStart={handleTouchStart}
@@ -523,8 +593,9 @@ export default function Home() {
                 onTouchEnd={handleTouchEnd}
                 style={{ touchAction: 'pan-y' }}
               >
+
                 {/* Previous Card (Left) */}
-                <div className="w-72 md:w-96 h-72 md:h-72 opacity-60 transform scale-90 transition-all duration-300">
+                <div className="w-72 md:w-96 h-72 md:h-72 transform scale-100 transition-all duration-300">
                   <div className="relative bg-white p-6 h-full" style={{ borderRadius: '10px 10px 10px 60px' }}>
                     <div className="absolute inset-0 rounded-[6px_6px_6px_56px]" style={{ 
                       background: 'linear-gradient(to bottom, #3E7DBB, rgba(62, 125, 187, 0))',
@@ -551,7 +622,7 @@ export default function Home() {
                       </div>
                       <div className="text-left">
                         <div className="font-semibold text-gray-800 text-sm">{testimonials[(currentSlide - 1 + testimonials.length) % testimonials.length].author}</div>
-                        <div className="text-gray-500 text-xs">{testimonials[(currentSlide - 1 + testimonials.length) % testimonials.length].location}</div>
+                        {/* <div className="text-gray-500 text-xs">{testimonials[(currentSlide - 1 + testimonials.length) % testimonials.length].location}</div> */}
                       </div>
                     </div>
                   </div>
@@ -585,14 +656,14 @@ export default function Home() {
                       </div>
                       <div className="text-left">
                         <div className="font-semibold text-gray-800">{testimonials[currentSlide].author}</div>
-                        <div className="text-gray-500 text-sm">{testimonials[currentSlide].location}</div>
+                        {/* <div className="text-gray-500 text-sm">{testimonials[currentSlide].location}</div> */}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Next Card (Right) */}
-                <div className="w-72 md:w-96 h-72 md:h-72 opacity-60 transform scale-90 transition-all duration-300">
+                <div className="w-72 md:w-96 h-72 md:h-72 transform scale-100 transition-all duration-300">
                   <div className="relative bg-white p-6 h-full" style={{ borderRadius: '10px 10px 10px 60px' }}>
                     <div className="absolute inset-0 rounded-[6px_6px_6px_56px]" style={{ 
                       background: 'linear-gradient(to bottom, #3E7DBB, rgba(62, 125, 187, 0))',
@@ -619,7 +690,7 @@ export default function Home() {
                       </div>
                       <div className="text-left">
                         <div className="font-semibold text-gray-800 text-sm">{testimonials[(currentSlide + 1) % testimonials.length].author}</div>
-                        <div className="text-gray-500 text-xs">{testimonials[(currentSlide + 1) % testimonials.length].location}</div>
+                        {/* <div className="text-gray-500 text-xs">{testimonials[(currentSlide + 1) % testimonials.length].location}</div> */}
                       </div>
                     </div>
                   </div>
@@ -631,9 +702,9 @@ export default function Home() {
                 {testimonials.map((_, index) => (
                   <button
                     key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`mx-2 w-3 h-3 rounded-full focus:outline-none ${
-                      currentSlide === index ? 'bg-[#3E7DBB]' : 'bg-gray-300'
+                    onClick={() => handleDotClick(index)}
+                    className={`mx-2 ${index === 1 ? 'w-10':"w-4"} h-3 rounded-full focus:outline-none ${
+                      index===1 ? 'bg-[#3E7DBB]' : 'bg-gray-300'
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -652,7 +723,7 @@ export default function Home() {
         >
         </div>
         
-        <div className="relative z-10 max-w-4xl mx-auto">
+        <div className="relative z-0 max-w-4xl mx-auto">
           <div className="backdrop-blur-lg rounded-3xl p-8 lg:p-12">
             <div className="text-center mb-8">
               <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight">
@@ -697,14 +768,14 @@ export default function Home() {
              </form>
 
              {/* Status Messages */}
-             {success && (
+             {/* {success && (
                <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-300 text-sm animate-fade-in-up">
                  <div className="flex items-center gap-2">
                    <span className="text-lg">✅</span>
                    <span>{success}</span>
                  </div>
                </div>
-             )}
+             )} */}
 
              {error && (
                <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300 text-sm animate-fade-in-up">
@@ -719,14 +790,14 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4">
+      <footer className="py-12 px-4 bg-white">
         <div className="max-w-6xl mx-auto text-center">
           {/* Logo */}
           <div className="mb-8">
             <img 
-              src="/ink logo-01.png" 
+              src="/ink_footer.svg" 
               alt="Logo" 
-              className="h-16 mx-auto filter brightness-0"
+              className="h-16 mx-auto"
             />
           </div>
           
@@ -737,7 +808,7 @@ export default function Home() {
               <img 
                 src="/facbook.avif" 
                 alt="Facebook" 
-                className="w-11 h-11"
+                className="w-14 h-14"
               />
             </button>
             
@@ -755,7 +826,7 @@ export default function Home() {
               <img 
                 src="/twiiter.png" 
                 alt="Twitter" 
-                className="w-8 h-8"
+                className="w-7 h-7 ml-3"
               />
             </button>
           </div>

@@ -11,8 +11,11 @@ import { testEmailHandler } from './testEmail';
 import { emailScheduler } from './emailScheduler';
 import { dataCollectionScheduler } from './dataCollectionScheduler';
 import { emailSendingScheduler } from './emailSendingScheduler';
-
 import { clearCache } from './utils/database';
+import { createBeehiivPost } from './utils/beehiiv';
+import { getCachedCityDataForToday } from './utils/cityData';
+import { buildBeehiivHtmlFromCityData, toEmailSafeHtml } from './utils/beehiivTemplate';
+import { renderMjml, mapToVM, toEmailSafeBody } from './utils/mjmlRenderer';
 
 // Environment variables'ları yükle
 dotenv.config();
@@ -95,6 +98,191 @@ app.get('/', (req, res) => {
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });
+});
+
+// Beehiiv test post creation endpoint
+app.post('/beehiiv/test-post', async (req, res) => {
+  try {
+    const { title, html, segmentId, emailSubject } = req.body || {};
+    if (!title || !html || !segmentId) {
+      return res.status(400).json({
+        success: false,
+        error: 'title, html and segmentId are required'
+      });
+    }
+
+    const result = await createBeehiivPost({
+      title,
+      html,
+      segmentIds: [segmentId],
+      status: 'confirmed',
+      hideFromFeed: true,
+      emailSubject: emailSubject || title
+    });
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        error: result.error
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Beehiiv post created successfully!',
+      postId: result.postId,
+      response: result.response
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// GET endpoint for testing Beehiiv post creation via browser
+app.get('/beehiiv/test-post', async (req, res) => {
+  try {
+    const { title, html, segmentId, emailSubject } = req.query;
+    
+    if (!title || !html || !segmentId) {
+      return res.status(400).json({
+        success: false,
+        error: 'title, html and segmentId query parameters are required',
+        example: 'http://localhost:4000/beehiiv/test-post?title=Test&html=<h1>Hello</h1>&segmentId=xxx&emailSubject=Test'
+      });
+    }
+
+    const result = await createBeehiivPost({
+      title: title as string,
+      html: html as string,
+      segmentIds: [segmentId as string],
+      status: 'confirmed',
+      hideFromFeed: true,
+      emailSubject: emailSubject as string || title as string
+    });
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        error: result.error
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Beehiiv post created successfully!',
+      postId: result.postId,
+      response: result.response
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Create Beehiiv post from cached daily data without touching existing email flow
+// Example:
+// GET /beehiiv/create-from-cache?city=Miami&segmentId=seg_xxx&subject=Daily%20Miami
+app.get('/beehiiv/create-from-cache', async (req, res) => {
+  try {
+    const { city, segmentId, subject } = req.query;
+    if (!city || !segmentId || !subject) {
+      return res.status(400).json({
+        success: false,
+        error: 'city, segmentId, and subject query parameters are required',
+        example: 'http://localhost:4000/beehiiv/create-from-cache?city=Miami&segmentId=seg_your-segment-id&subject=Daily%20Update'
+      });
+    }
+
+    // 1) Fetch cached content same as emailSendingScheduler
+    const cachedData = await getCachedCityDataForToday(city as string);
+    if (!cachedData) {
+      return res.status(404).json({ success: false, error: `No cached data found for ${city} today.` });
+    }
+
+    // 2) Build HTML content using the existing professional template
+    const htmlContent = buildBeehiivHtmlFromCityData(cachedData, emailScheduler.generateEmailHTML);
+    
+    // 3) Convert to email-safe format (CSS inline + body content only)
+    const emailSafe = toEmailSafeHtml(htmlContent);
+
+    // 4) Create Beehiiv post
+    const result = await createBeehiivPost({
+      title: subject as string,
+      html: emailSafe,  // <-- Email-safe HTML
+      segmentIds: [segmentId as string],
+      status: 'confirmed',
+      hideFromFeed: true,
+      emailSubject: subject as string
+    });
+
+    if (!result.success) {
+      return res.status(500).json({ success: false, error: result.error });
+    }
+
+    res.json({
+      success: true,
+      message: 'Beehiiv post created successfully!',
+      postId: result.postId,
+      response: result.response,
+      note: 'HTML converted to email-safe format with inline CSS'
+    });
+
+  } catch (error: any) {
+    console.error('Error creating Beehiiv post from cache:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// MJML önizleme: derlenmiş HTML döner
+app.get('/preview-beehiiv', async (req, res) => {
+  try {
+    const city = (req.query.city as string) || 'Boston';
+    const cached = await getCachedCityDataForToday(city);
+    if (!cached) return res.status(404).send('No cache for today');
+
+    const vm = mapToVM(cached);
+    const html = renderMjml(vm);
+    res.set('Content-Type', 'text/html; charset=utf-8').send(html);
+  } catch (e: any) {
+    res.status(500).send(e.message);
+  }
+});
+
+// MJML ile Beehiiv gönderim: body_content olarak inline CSS + sadece <body>
+app.get('/beehiiv/send-mjml', async (req, res) => {
+  try {
+    const { city, segmentId, subject } = req.query as any;
+    if (!city || !segmentId || !subject) {
+      return res.status(400).json({ success: false, error: 'city, segmentId, subject gereklidir' });
+    }
+
+    const cached = await getCachedCityDataForToday(city);
+    if (!cached) return res.status(404).json({ success: false, error: `No cache for today for ${city}` });
+
+    const vm = mapToVM(cached);
+    const compiledHtml = renderMjml(vm);
+    const bodyContent = toEmailSafeBody(compiledHtml);
+
+    const result = await createBeehiivPost({
+      title: subject,
+      html: bodyContent,
+      segmentIds: [segmentId],
+      status: 'confirmed',
+      hideFromFeed: true,
+      emailSubject: subject
+    });
+
+    if (!result.success) return res.status(500).json({ success: false, error: result.error });
+
+    res.json({ success: true, postId: result.postId, response: result.response });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
 });
 
 // OPTIONS request handler for CORS preflight
@@ -367,11 +555,6 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
   });
 });
 
-// 404 handler
-app.use('/*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
-
 // Server'ı başlat
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
@@ -390,4 +573,56 @@ app.listen(PORT, () => {
   // Eski email scheduler (test için)
   console.log('🧪 Starting old email scheduler for testing...');
   emailScheduler.start();
+}); 
+
+// 404 handler (en sonda kalmalı)
+app.use('/*', (req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// MJML önizleme: derlenmiş HTML döner
+app.get('/preview-beehiiv', async (req, res) => {
+  try {
+    const city = (req.query.city as string) || 'Boston';
+    const cached = await getCachedCityDataForToday(city);
+    if (!cached) return res.status(404).send('No cache for today');
+
+    const vm = mapToVM(cached);
+    const html = renderMjml(vm);
+    res.set('Content-Type', 'text/html; charset=utf-8').send(html);
+  } catch (e: any) {
+    res.status(500).send(e.message);
+  }
+});
+
+// MJML ile Beehiiv gönderim: body_content olarak inline CSS + sadece <body>
+app.get('/beehiiv/send-mjml', async (req, res) => {
+  try {
+    const { city, segmentId, subject } = req.query as any;
+    if (!city || !segmentId || !subject) {
+      return res.status(400).json({ success: false, error: 'city, segmentId, subject gereklidir' });
+    }
+
+    const cached = await getCachedCityDataForToday(city);
+    if (!cached) return res.status(404).json({ success: false, error: `No cache for today for ${city}` });
+
+    const vm = mapToVM(cached);
+    const compiledHtml = renderMjml(vm);
+    const bodyContent = toEmailSafeBody(compiledHtml);
+
+    const result = await createBeehiivPost({
+      title: subject,
+      html: bodyContent,
+      segmentIds: [segmentId],
+      status: 'confirmed',
+      hideFromFeed: true,
+      emailSubject: subject
+    });
+
+    if (!result.success) return res.status(500).json({ success: false, error: result.error });
+
+    res.json({ success: true, postId: result.postId, response: result.response });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
 }); 
