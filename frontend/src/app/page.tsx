@@ -300,7 +300,7 @@ export default function Home() {
 
                 {/* Message text */}
                 <div className="flex flex-col">
-                  <h3 className="text-4xl font-normal text-sky-600">You're in!</h3>
+                  <h3 className="text-4xl font-normal text-sky-600">You&apos;re in!</h3>
                   <p className="text-[#3E7DBB] text-lg sm:text-[26px] font-extralight">
                     Thanks for subscribing. We&apos;re redirecting you to Behiiv — hang tight, it&apos;s just a second!
                   </p>
