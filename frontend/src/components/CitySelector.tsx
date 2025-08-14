@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { SingleValue } from 'react-select';
 import { CityOption, getAllCities, searchCitiesPaged } from '../data/cities';
 
 const Select = dynamic(() => import('react-select'), { ssr: false });
@@ -142,7 +141,6 @@ export default function CitySelector({
         loadingMessage={() => "Loading..."}
         menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
         menuPosition="fixed"
-        onMenuScrollToBottom={onMenuScrollToBottom}
         styles={{
           control: (base) => ({
             ...base,
