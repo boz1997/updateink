@@ -6,6 +6,7 @@
         "postinstall": "npm run build"
     },
     "devDependencies": {
+        "@types/mjml": "^4.7.4",
         "ts-node-dev": "^2.0.0"
     },
     "dependencies": {
