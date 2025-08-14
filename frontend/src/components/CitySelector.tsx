@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { SingleValue } from 'react-select';
-import { US_CITIES, CityOption, searchCities } from '../data/cities';
+import { CityOption, getAllCities, searchCities } from '../data/cities';
 
 const Select = dynamic(() => import("react-select"), { ssr: false });
 
@@ -26,34 +26,75 @@ export default function CitySelector({
   disabled = false
 }: CitySelectorProps) {
   const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
+  const [cities, setCities] = useState<CityOption[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  const normalizeOptions = (list: CityOption[]): CityOption[] =>
+    (list || []).filter(
+      (o) => o && typeof o.value === 'string' && typeof o.label === 'string'
+    );
+
+  // CSV'den şehirleri yükle
   useEffect(() => {
-    const city = US_CITIES.find(c => c.value === value);
-    if (city) {
-      console.log('🏙️ City found in list:', city.label);
-      setSelectedCity(city);
-    } else if (value) {
-      console.log('❌ City not found in list:', value);
-      setSelectedCity(null);
-    }
+    const loadCities = async () => {
+      try {
+        setIsLoading(true);
+        const allCities = await getAllCities();
+        setCities(normalizeOptions(allCities));
+        
+        // Eğer value varsa, şehri bul ve seç
+        if (value) {
+          const city = allCities.find(c => c.value === value);
+          if (city) {
+            console.log('🏙️ City found in list:', city.label);
+            setSelectedCity(city);
+          } else {
+            console.log('❌ City not found in list:', value);
+            setSelectedCity(null);
+          }
+        }
+      } catch (error) {
+        console.error('Şehirler yüklenirken hata:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCities();
   }, [value]);
+
+  // Şehir arama fonksiyonu (react-select sync string bekler)
+  const handleInputChange = (inputValue: string) => {
+    if (inputValue.trim()) {
+      searchCities(inputValue)
+        .then((results) => setCities(normalizeOptions(results)))
+        .catch((err) => console.error('Arama hatası:', err));
+    } else {
+      getAllCities()
+        .then((all) => setCities(normalizeOptions(all)))
+        .catch((err) => console.error('Şehirler yüklenemedi:', err));
+    }
+    return inputValue;
+  };
 
   return (
     <div className={`relative z-[999999] ${className}`}>
       <Select
-        options={US_CITIES}
+        options={cities}
         value={selectedCity}
         onChange={(option) => {
           const cityOption = option as CityOption | null;
           setSelectedCity(cityOption);
           onChange(cityOption?.value || "");
         }}
+        onInputChange={handleInputChange}
         placeholder={placeholder}
         isClearable={isClearable}
         isSearchable={isSearchable}
         isDisabled={disabled}
+        isLoading={isLoading}
         classNamePrefix="react-select"
-        noOptionsMessage={() => "Şehir bulunamadı"}
+        noOptionsMessage={() => isLoading ? "Yükleniyor..." : "Şehir bulunamadı"}
         loadingMessage={() => "Aranıyor..."}
         menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
         menuPosition="fixed"

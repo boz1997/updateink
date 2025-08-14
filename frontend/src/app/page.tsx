@@ -47,9 +47,27 @@ export default function Home() {
   useEffect(() => {
     fetch('https://ipapi.co/json/')
       .then((res) => res.json())
-      .then((data) => {
+      .then(async (data) => {
         if (data.city) {
-          setCity(data.city);
+          // CSV'deki şehirlerle eşleştir
+          try {
+            const { searchCities } = await import('../data/cities');
+            const matchingCities = await searchCities(data.city);
+            
+            if (matchingCities.length > 0) {
+              // En iyi eşleşmeyi seç
+              const bestMatch = matchingCities[0];
+              setCity(bestMatch.value);
+              console.log('🏙️ IP ile şehir bulundu:', bestMatch.label);
+            } else {
+              // Eşleşme bulunamazsa orijinal değeri kullan
+              setCity(data.city);
+              console.log('⚠️ IP şehri CSV\'de bulunamadı:', data.city);
+            }
+          } catch (error) {
+            console.error('Şehir arama hatası:', error);
+            setCity(data.city);
+          }
         }
         setIpLoading(false);
       })
