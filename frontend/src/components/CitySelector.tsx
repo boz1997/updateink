@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { SingleValue } from 'react-select';
-import { CityOption, getAllCities, searchCities } from '../data/cities';
+import { CityOption, getAllCities, searchCitiesPaged } from '../data/cities';
 
-const Select = dynamic(() => import("react-select"), { ssr: false });
+const Select = dynamic(() => import('react-select'), { ssr: false });
 
 interface CitySelectorProps {
   value: string;
@@ -19,7 +19,7 @@ interface CitySelectorProps {
 export default function CitySelector({
   value,
   onChange,
-  placeholder = "Şehir seçin...",
+  placeholder = "Choose a city...",
   className = "",
   isClearable = true,
   isSearchable = true,
@@ -28,6 +28,9 @@ export default function CitySelector({
   const [selectedCity, setSelectedCity] = useState<CityOption | null>(null);
   const [cities, setCities] = useState<CityOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [query, setQuery] = useState('');
+  const [offset, setOffset] = useState(0);
 
   const normalizeOptions = (list: CityOption[]): CityOption[] =>
     (list || []).filter(
@@ -39,8 +42,9 @@ export default function CitySelector({
     const loadCities = async () => {
       try {
         setIsLoading(true);
+        // Başlangıçta tam listeyi fetch etme; sadece seçili değeri bul
         const allCities = await getAllCities();
-        setCities(normalizeOptions(allCities));
+        setCities([]);
         
         // Eğer value varsa, şehri bul ve seç
         if (value) {
@@ -54,7 +58,7 @@ export default function CitySelector({
           }
         }
       } catch (error) {
-        console.error('Şehirler yüklenirken hata:', error);
+        console.error('Failed to load cities:', error);
       } finally {
         setIsLoading(false);
       }
@@ -63,18 +67,54 @@ export default function CitySelector({
     loadCities();
   }, [value]);
 
-  // Şehir arama fonksiyonu (react-select sync string bekler)
-  const handleInputChange = (inputValue: string) => {
-    if (inputValue.trim()) {
-      searchCities(inputValue)
-        .then((results) => setCities(normalizeOptions(results)))
-        .catch((err) => console.error('Arama hatası:', err));
-    } else {
-      getAllCities()
-        .then((all) => setCities(normalizeOptions(all)))
-        .catch((err) => console.error('Şehirler yüklenemedi:', err));
+  // Async loader: her inputta server/CSV üzerinden filtrelenmiş küçük liste getir
+  // İlk açılışta veya input değiştiğinde ilk sayfayı getir
+  const fetchFirstPage = async (q: string) => {
+    try {
+      setIsLoading(true);
+      const page = await searchCitiesPaged(q, 0, 30);
+      setCities(normalizeOptions(page.items));
+      setOffset(page.items.length);
+      setHasMore(page.items.length < page.total);
+    } catch (e) {
+      console.error('fetchFirstPage error', e);
+      setCities([]);
+      setOffset(0);
+      setHasMore(false);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Menü scroll oldukça daha fazla yükle (infinite scroll)
+  const onMenuScrollToBottom = async () => {
+    if (!hasMore) return;
+    try {
+      setIsLoading(true);
+      const page = await searchCitiesPaged(query, offset, 30);
+      const nextOffset = offset + page.items.length;
+      setOffset(nextOffset);
+      setHasMore(nextOffset < page.total);
+      // react-select async defaultOptions ile options prop'unu kullanmıyor,
+      // value karşılaştırması için local state'te tuttuğumuz opsiyonları birleştiriyoruz
+      setCities((prev) => normalizeOptions([...(prev || []), ...page.items]));
+    } catch (e) {
+      console.error('load more error', e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (inputValue: string) => {
+    const nextQuery = inputValue || '';
+    setQuery(nextQuery);
+    fetchFirstPage(nextQuery);
     return inputValue;
+  };
+
+  const handleMenuOpen = () => {
+    // Menü açıldığında mevcut sorgu ile ilk sayfayı getir
+    fetchFirstPage(query);
   };
 
   return (
@@ -88,16 +128,21 @@ export default function CitySelector({
           onChange(cityOption?.value || "");
         }}
         onInputChange={handleInputChange}
+        onMenuOpen={handleMenuOpen}
         placeholder={placeholder}
         isClearable={isClearable}
         isSearchable={isSearchable}
         isDisabled={disabled}
         isLoading={isLoading}
         classNamePrefix="react-select"
-        noOptionsMessage={() => isLoading ? "Yükleniyor..." : "Şehir bulunamadı"}
-        loadingMessage={() => "Aranıyor..."}
+        onMenuScrollToBottom={onMenuScrollToBottom}
+        noOptionsMessage={({ inputValue }) =>
+          isLoading ? "Loading..." : (inputValue?.trim() ? "No cities found" : "Type to search cities")
+        }
+        loadingMessage={() => "Loading..."}
         menuPortalTarget={typeof document !== 'undefined' ? document.body : null}
         menuPosition="fixed"
+        onMenuScrollToBottom={onMenuScrollToBottom}
         styles={{
           control: (base) => ({
             ...base,

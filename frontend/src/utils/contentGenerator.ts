@@ -240,7 +240,7 @@ const formatEventDate = (dateString: string): string => {
         const [month, day] = datePart.split(' ');
         const d = new Date(`${month} ${day}, 2025`);
         if (!isNaN(d.getTime())) {
-          const base = d.toLocaleDateString('tr-TR', {
+         const base = d.toLocaleDateString('en-US', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',

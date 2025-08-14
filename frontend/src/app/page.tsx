@@ -49,23 +49,23 @@ export default function Home() {
       .then((res) => res.json())
       .then(async (data) => {
         if (data.city) {
-          // CSV'deki şehirlerle eşleştir
+          // Match IP city with CSV list
           try {
             const { searchCities } = await import('../data/cities');
             const matchingCities = await searchCities(data.city);
             
             if (matchingCities.length > 0) {
-              // En iyi eşleşmeyi seç
+              // Pick best match
               const bestMatch = matchingCities[0];
               setCity(bestMatch.value);
-              console.log('🏙️ IP ile şehir bulundu:', bestMatch.label);
+              console.log('🏙️ City detected from IP:', bestMatch.label);
             } else {
-              // Eşleşme bulunamazsa orijinal değeri kullan
+              // Fallback to raw IP city if not found in CSV
               setCity(data.city);
-              console.log('⚠️ IP şehri CSV\'de bulunamadı:', data.city);
+              console.log('⚠️ IP city not found in CSV:', data.city);
             }
           } catch (error) {
-            console.error('Şehir arama hatası:', error);
+            console.error('City search error:', error);
             setCity(data.city);
           }
         }
