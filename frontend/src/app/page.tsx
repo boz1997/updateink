@@ -289,8 +289,8 @@ export default function Home() {
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="flex flex-col lg:flex-row gap-3 md:gap-4 max-w-2xl mx-auto lg:mx-0 -mb-16 md:mb-0">
-                {/* City Input */}
-                <div className="relative w-3/4 md:w-[350px] md:flex-[0.6] lg:flex-1 mx-auto md:mx-0 z-10">
+                                 {/* City Input */}
+                 <div className="relative w-4/5 md:w-[400px] md:flex-[0.6] lg:flex-1 mx-auto md:mx-0 z-10">
                   <CitySelector
                     value={city}
                     onChange={setCity}
@@ -299,15 +299,17 @@ export default function Home() {
                     className="[&_.react-select__control]:bg-white [&_.react-select__control]:border-gray-300 [&_.react-select__control]:text-gray-900 [&_.react-select__placeholder]:text-gray-500 [&_.react-select__single-value]:text-gray-900 [&_.react-select__input]:text-gray-900 [&_.react-select__indicators]:text-gray-400 [&_.react-select__menu]:bg-white [&_.react-select__option]:text-gray-700 [&_.react-select__option--is-focused]:bg-blue-50 [&_.react-select__option--is-selected]:bg-blue-600 [&_.react-select__option--is-selected]:text-white"
                   />
                 </div>
-
-                {/* Email Input */}
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-3 md:px-4 py-3 h-12 md:py-1 bg-white text-gray-900 placeholder-gray-500 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-update-blue focus:border-transparent text-sm md:text-base"
-                />
+                
+                                 {/* Email Input */}
+                 <div className="relative w-4/5 md:w-[400px] md:flex-[0.6] lg:flex-1 mx-auto md:mx-0">
+                  <input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 md:px-4 py-3 h-12 md:py-1 bg-white text-gray-900 placeholder-gray-500 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-update-blue focus:border-transparent text-sm md:text-base"
+                  />
+                </div>
 
                 {/* Subscribe Button */}
                 <button
@@ -758,7 +760,7 @@ export default function Home() {
                <button 
                  type="submit"
                  disabled={loading || !city.trim() || !emailValid}
-                 className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                 className="w-1/2 md:w-auto mx-auto md:mx-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 h-12 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                >
                  {loading ? "Subscribing..." : "Subscribe"}
                </button>
