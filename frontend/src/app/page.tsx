@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import CitySelector from "../components/CitySelector";
+import PrivacyPolicyModal from '@/components/PrivacyPolicyModal';
 
 export default function Home() {
   const [city, setCity] = useState('');
@@ -17,6 +18,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [emailValid, setEmailValid] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
 
   // Testimonials data
   const testimonials = [
@@ -198,6 +200,9 @@ export default function Home() {
     setCurrentSlide(prev => prev === testimonials.length - 1 ? 0 : prev + 1);
   };
 
+  const openPrivacyModal = () => setShowPrivacyModal(true);
+  const closePrivacyModal = () => setShowPrivacyModal(false);
+
   return (
     <div className="relative overflow-hidden bg-white">
 
@@ -335,11 +340,11 @@ export default function Home() {
         <div className="relative bg-[#FAFAFA]">
           <div className="bg-update-blue py-2 transform -skew-y-2 origin-top-left">
             <div className="max-w-6xl mx-auto pl-0 pr-4 -ml-4 -mr-8 marquee-wraper">
-              <div className="flex justify-between items-center text-white text-sm md:text-lg lg:text-xl font-normal leading-relaxed whitespace-nowrap h-8 -mt-2 md:mt-0 lg:mt-1 marquee-content">
-                <span className="text-xs md:text-base lg:text-lg">
+              <div className="flex justify-between items-center text-white text-sm md:text-lg lg:text-xl font-normal leading-relaxed whitespace-nowrap h-10 mt-4 md:mt-0 lg:mt-1 marquee-content">
+                <span className="text-base md:text-base lg:text-lg">
                   Updates from your city.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Highlights from your favorite local teams.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ideas to make the most of your weekend.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;All gathered in one place - curated&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stay connected with your community
                 </span>
-                <span className="text-xs md:text-base lg:text-lg">
+                <span className="text-base md:text-base lg:text-lg ml-6">
                   Updates from your city.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Highlights from your favorite local teams.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Ideas to make the most of your weekend.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;All gathered in one place - curated&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stay connected with your community
                 </span>
               </div>
@@ -603,126 +608,64 @@ export default function Home() {
           </div>
 
 
-            <div className="flex flex-col justify-center items-center py-8 md:hidden">
-              <div 
-                className="flex items-center space-x-8 md:space-x-20 relative"
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-                style={{ touchAction: 'pan-y' }}
-              >
-
-                {/* Previous Card (Left) */}
-                <div className="w-72 md:w-96 h-72 md:h-72 transform scale-100 transition-all duration-300">
-                  <div className="relative bg-white p-6 h-full" style={{ borderRadius: '10px 10px 10px 60px' }}>
-                    <div className="absolute inset-0 rounded-[6px_6px_6px_56px]" style={{ 
-                      background: 'linear-gradient(to bottom, #3E7DBB, rgba(62, 125, 187, 0))',
-                      borderRadius: '10px 10px 10px 60px',
-                      padding: '4px',
-                      zIndex: -1,
-                      margin: '-4px'
-                    }}></div>
-                    <div className="flex justify-start mb-3">
-                      <div className="flex space-x-1">
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
+            <div className="flex flex-col overflow-hidden justify-center items-center py-4 md:hidden">
+              <div className="relative w-full overflow-hidden px-1 py-1">
+                <div 
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{ 
+                    transform: `translateX(-${currentSlide * 100}%)`,
+                    touchAction: 'pan-y'
+                  }}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  {[...testimonials,...testimonials].map((testimonial, index) => (
+                    <div key={index} className="w-full flex-shrink-0 flex justify-center px-4">
+                      <div className="w-72 h-72">
+                        <div className="relative bg-white p-6 h-full" style={{ borderRadius: '10px 10px 10px 60px' }}>
+                          <div className="absolute inset-0 rounded-[6px_6px_6px_56px]" style={{ 
+                            background: 'linear-gradient(to bottom, #3E7DBB, rgba(62, 125, 187, 0))',
+                            borderRadius: '10px 10px 10px 60px',
+                            padding: '4px',
+                            zIndex: -1,
+                            margin: '-4px'
+                          }}></div>
+                          <div className="flex justify-start mb-3">
+                            <div className="flex space-x-1">
+                              {Array(5).fill(0).map((_, i) => (
+                                <span key={i} className="text-yellow-400 text-lg">⭐</span>
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-gray-700 text-base mb-4 leading-relaxed text-left">
+                            {testimonial.quote}
+                          </p>
+                          <div className="flex items-center justify-start">
+                            <div className="bg-blue-600 rounded-full w-12 h-12 flex items-center justify-center text-white font-bold mr-3">
+                              {testimonial.initials}
+                            </div>
+                            <div className="text-left">
+                              <div className="font-semibold text-gray-800">{testimonial.author}</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <p className="text-gray-700 text-sm mb-4 leading-relaxed line-clamp-4 text-left">
-                      {testimonials[(currentSlide - 1 + testimonials.length) % testimonials.length].quote}
-                    </p>
-                    <div className="flex items-center justify-start">
-                      <div className="bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center text-white font-bold mr-2 text-sm">
-                        {testimonials[(currentSlide - 1 + testimonials.length) % testimonials.length].initials}
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold text-gray-800 text-sm">{testimonials[(currentSlide - 1 + testimonials.length) % testimonials.length].author}</div>
-                        {/* <div className="text-gray-500 text-xs">{testimonials[(currentSlide - 1 + testimonials.length) % testimonials.length].location}</div> */}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Current Card (Center) */}
-                <div className="w-72 md:w-96 h-72 md:h-72 transform scale-100 transition-all duration-300">
-                  <div className="relative bg-white p-6 h-full" style={{ borderRadius: '10px 10px 10px 60px' }}>
-                    <div className="absolute inset-0 rounded-[6px_6px_6px_56px]" style={{ 
-                      background: 'linear-gradient(to bottom, #3E7DBB, rgba(62, 125, 187, 0))',
-                      borderRadius: '10px 10px 10px 60px',
-                      padding: '4px',
-                      zIndex: -1,
-                      margin: '-4px'
-                    }}></div>
-                    <div className="flex justify-start mb-3">
-                      <div className="flex space-x-1">
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                      </div>
-                    </div>
-                    <p className="text-gray-700 text-base mb-4 leading-relaxed text-left">
-                      {testimonials[currentSlide].quote}
-                    </p>
-                    <div className="flex items-center justify-start">
-                      <div className="bg-blue-600 rounded-full w-12 h-12 flex items-center justify-center text-white font-bold mr-3">
-                        {testimonials[currentSlide].initials}
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold text-gray-800">{testimonials[currentSlide].author}</div>
-                        {/* <div className="text-gray-500 text-sm">{testimonials[currentSlide].location}</div> */}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Next Card (Right) */}
-                <div className="w-72 md:w-96 h-72 md:h-72 transform scale-100 transition-all duration-300">
-                  <div className="relative bg-white p-6 h-full" style={{ borderRadius: '10px 10px 10px 60px' }}>
-                    <div className="absolute inset-0 rounded-[6px_6px_6px_56px]" style={{ 
-                      background: 'linear-gradient(to bottom, #3E7DBB, rgba(62, 125, 187, 0))',
-                      borderRadius: '10px 10px 10px 60px',
-                      padding: '4px',
-                      zIndex: -1,
-                      margin: '-4px'
-                    }}></div>
-                    <div className="flex justify-start mb-3">
-                      <div className="flex space-x-1">
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                        <span className="text-yellow-400 text-lg">⭐</span>
-                      </div>
-                    </div>
-                    <p className="text-gray-700 text-sm mb-4 leading-relaxed line-clamp-4 text-left">
-                      {testimonials[(currentSlide + 1) % testimonials.length].quote}
-                    </p>
-                    <div className="flex items-center justify-start">
-                      <div className="bg-blue-600 rounded-full w-10 h-10 flex items-center justify-center text-white font-bold mr-2 text-sm">
-                        {testimonials[(currentSlide + 1) % testimonials.length].initials}
-                      </div>
-                      <div className="text-left">
-                        <div className="font-semibold text-gray-800 text-sm">{testimonials[(currentSlide + 1) % testimonials.length].author}</div>
-                        {/* <div className="text-gray-500 text-xs">{testimonials[(currentSlide + 1) % testimonials.length].location}</div> */}
-                      </div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
               
               {/* Navigation Dots - Mobile Only */}
-              <div className="flex md:hidden justify-center mt-8">
+              <div className="flex md:hidden justify-center mt-8 space-x-2">
                 {testimonials.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => handleDotClick(index)}
-                    className={`mx-2 ${index === 1 ? 'w-10':"w-4"} h-3 rounded-full focus:outline-none ${
-                      index===1 ? 'bg-[#3E7DBB]' : 'bg-gray-300'
+                    className={`h-2 rounded-full transition-all duration-300 ease-out focus:outline-none ${
+                      index === 1 
+                        ? 'w-8 bg-[#3E7DBB]' 
+                        : 'w-2 bg-gray-300 hover:bg-gray-400'
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
@@ -807,6 +750,11 @@ export default function Home() {
         </div>
       </section>
 
+      <PrivacyPolicyModal 
+        isOpen={showPrivacyModal} 
+        onClose={closePrivacyModal} 
+      />
+
       {/* Footer */}
       <footer className="py-12 px-4 bg-white">
         <div className="max-w-6xl mx-auto text-center">
@@ -858,10 +806,13 @@ export default function Home() {
               Created by Vizio Ventures · 2025 © All rights reserved.
             </div>
             <div className="flex space-x-6">
-              <button className="hover:text-gray-700 transition-colors duration-200 bg-transparent border-none p-0 text-gray-500 text-sm">
+              <button 
+                className="hover:text-gray-700 transition-colors duration-200 bg-transparent border-none p-0 text-gray-500 text-sm"
+                onClick={openPrivacyModal}
+              >
                 Privacy & Policy
               </button>
-              <button className="hover:text-gray-700 transition-colors duration-200 bg-transparent border-none p-0 text-gray-500 text-sm">
+              <button className="hidden hover:text-gray-700 transition-colors duration-200 bg-transparent border-none p-0 text-gray-500 text-sm">
                 Terms & Conditions
               </button>
             </div>
