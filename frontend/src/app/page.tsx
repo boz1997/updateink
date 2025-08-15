@@ -104,21 +104,45 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!city.trim() || !emailValid) {
-      setError("Please fill in all fields correctly.");
+    console.log('🔍 Form validation check:', { 
+      city: city.trim(), 
+      email: email.trim(), 
+      emailValid,
+      cityLength: city.trim().length,
+      emailLength: email.trim().length
+    });
+    
+    if (!city.trim()) {
+      setError("Please select a city.");
+      return;
+    }
+    
+    if (!email.trim()) {
+      setError("Please enter your email address.");
+      return;
+    }
+    
+    if (!emailValid) {
+      setError("Please enter a valid email address.");
       return;
     }
     
     setLoading(true);
-    setSuccess(null);
-    setModalOpen(true)
     setError(null);
+    setSuccess(null);
     
     try {
       console.log('🚀 Sending request to backend...');
       console.log('📧 Request data:', { city: city.trim(), email: email.trim() });
       
-      const res = await fetch(`https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net/subscribe`, {
+      // Backend URL'i environment'a göre belirle
+      const BACKEND_URL = process.env.NODE_ENV === 'production' 
+        ? 'https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net'
+        : 'http://localhost:4000';
+      
+      console.log('🌐 Using backend URL:', BACKEND_URL);
+      
+      const res = await fetch(`${BACKEND_URL}/subscribe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ city: city.trim(), email: email.trim() }),
@@ -128,21 +152,30 @@ export default function Home() {
       console.log('📡 Response headers:', Object.fromEntries(res.headers.entries()));
       
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+        const errorText = await res.text();
+        console.error('❌ HTTP Error Response:', errorText);
+        throw new Error(`Server error: ${res.status} - ${errorText}`);
       }
       
       const data = await res.json();
+      console.log('✅ Response data:', data);
+      
       if (data.success) {
         setSuccess("🎉 Successfully subscribed! Your city information has been saved.");
         setModalOpen(true);
+        // Form'u temizle
         setEmail("");
         setCity("");
       } else {
-        setError(data.details || data.error || "An error occurred.");
+        setError(data.details || data.error || "Subscription failed. Please try again.");
       }
     } catch (err: unknown) {
-      console.error('Submit error:', err);
-      setError(err instanceof Error ? err.message : "Cannot reach server.");
+      console.error('❌ Submit error:', err);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Network error. Please check your connection and try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -287,14 +320,14 @@ export default function Home() {
               </form>
 
               {/* Status Messages */}
-              {/* {success && (
+              {success && (
                 <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-300 text-sm animate-fade-in-up">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">✅</span>
                     <span>{success}</span>
                   </div>
                 </div>
-              )} */}
+              )}
               
 
               {error && (
@@ -307,9 +340,12 @@ export default function Home() {
               )}
             </div>
           </div>
-          {(success && modalOpen) && (
+          {success && (
             <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50"
-            onClick={() => setModalOpen(false)}>
+            onClick={() => {
+              setModalOpen(false);
+              setSuccess(null);
+            }}>
               <div className="relative flex items-start gap-3 p-6 bg-white rounded-2xl shadow-lg mx-6 sm:max-w-md h-[200px] animate-fade-in-up"
               onClick={(e) => e.stopPropagation()} >
                 {/* Green circle with tick */}
@@ -728,16 +764,15 @@ export default function Home() {
                </button>
              </form>
 
-             {/* Status Messages */}
-             {/* {success && (
-               <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-300 text-sm animate-fade-in-up">
-                 <div className="flex items-center gap-2">
-                   <span className="text-lg">✅</span>
-                   <span>{success}</span>
-                 </div>
-               </div>
-             )} */}
-
+                           {/* Status Messages */}
+              {success && (
+                <div className="mt-4 p-3 bg-green-500/20 border border-green-500/30 rounded-lg text-green-300 text-sm animate-fade-in-up">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">✅</span>
+                    <span>{success}</span>
+                  </div>
+                </div>
+              )}
              {error && (
                <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300 text-sm animate-fade-in-up">
                  <div className="flex items-center gap-2">
