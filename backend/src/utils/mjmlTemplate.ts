@@ -1,232 +1,367 @@
 export const MJML_TEMPLATE = `
 <mjml>
   <mj-head>
+  <mj-font name="Plus Jakarta Sans" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" />
+
     <mj-attributes>
-      <mj-all font-family="Arial, Helvetica, sans-serif" color="#333333" />
-      <mj-text font-size="14px" line-height="1.6" />
-      <mj-section padding="0px" />
-      <mj-column padding="0px" />
+      <!-- Use Plus Jakarta Sans globally with safe fallbacks -->
+      <mj-all font-family="'Plus Jakarta Sans', Arial, Helvetica, sans-serif" />
+      <mj-text font-size="16px" line-height="1.5" color="#2d2d2d" />
+      <mj-section padding="0" />
+      <mj-column padding="0" />
+      <mj-image padding="0" />
+      <mj-button background-color="#2e77c8" color="#ffffff" font-weight="700" inner-padding="10px 16px" border-radius="8px" />
     </mj-attributes>
-    <mj-style>
-      .chip { border-radius:20px; padding:4px 10px; color:#ffffff; font-weight:700; font-size:12px; display:inline-block; }
-      .chip.music { background:#e74c3c; }
-      .chip.art { background:#9b59b6; }
-      .chip.theatre { background:#f39c12; }
-      .chip.sports { background:#27ae60; }
-      .chip.festivals { background:#e67e22; }
-      .chip.markets { background:#34495e; }
-      .chip.food { background:#d35400; }
-      .chip.other { background:#2e78c7; }
-      .card { border-left:4px solid #2e78c7; background:#f8f9fa; border-radius:8px; }
-      .sponsor { border-radius:8px; background:#ffffff; }
-      .btn { background:#4a90e2; color:#ffffff; text-decoration:none; font-weight:700; padding:12px 20px; border-radius:6px; display:inline-block; }
-      .news-link { color:#ff8c00; font-weight:700; text-decoration:none; }
-      .muted { color:#666666; }
+
+    <mj-style >
+      .container { background:white; }
+      .muted { color:#6b7280; }
+      .brand { color:#2e77c8; }
+      .chip { display:inline-block; padding:2px 8px; font-size:14px; border-radius:9999px; background:#e8f1fd; color:#2e77c8; font-weight:600; }
+      .card { background:#ffffff; border-radius:12px; }
+      .event-card {background: #ffffff;border-radius: 12px;box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);overflow: hidden;width:90%}
+      .evt-row:last-child td {border-bottom: none !important;}
+      .city-title { color:#4A90E2; font-size:24px; font-weight:600; margin-top:5px; text-align:center; }
+      .bullet-dot { width:8px; height:8px; border-radius:50%; background:#f59e0b; display:inline-block; margin-right:10px; }
+      .list-table { width:100%; }
+      .list-table td { padding:0px 0px; vertical-align:top; }
+      .section-header { width:100%; }
+      .news-title { font-weight:700; color:#1f2937; }
+      .news-card { border:2px solid #F4B94240; border-radius:10px; padding:10px 10px;margin-bottom:5px; }
+      .evt-row {  margin-bottom:10px; padding:8px 0px; }
+      .evt-meta { color:#6b7280; }
+      .sports-note { color:#334155; }
+      .footer { background:#0f172a; color:#cbd5e1; }
+      .footer a { color:#cbd5e1; text-decoration:none; }
+      .right-cta a { text-decoration:none; color:#F4B942; font-weight:700; }
+      .highlight { color:#F4B942; font-weight:700; }
+      .s-name{font-weight:700;font-size:13px;color:#111827}
+      .s-meta{font-size:12px;color:#6b7280} 
+      .s-link{font-size:12px;color:#2563eb;text-decoration:none}
+      .s-card{border:0px solid #e5e7eb;border-radius:12px;background:#fff} 
+      .s-pad{padding:0} 
+      
+      
     </mj-style>
   </mj-head>
-  <mj-body background-color="#f4f4f4">
 
-    <!-- wrapper -->
-    <mj-section padding="20px 0">
+  <mj-body background-color="#fffff" width="680px" css-class="container">
+    <mj-wrapper padding="0">
+
+      <!-- Top bar: logo + socials -->
+      <mj-section>
+        <mj-column padding="0">
+          <mj-table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            <tr>
+              <td style="vertical-align:middle; width:50%;">
+                <img src="https://i.ibb.co/fVnRyL1g/header-Logo.png" alt="Update Ink"
+                    width="64" style="display:block; line-height:1; border:0; outline:none; text-decoration:none;" />
+              </td>
+
+              <td align="right" style="vertical-align:middle; width:50%;">
+                <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
+                  <img src="https://i.ibb.co/SDxwQThz/facebook-Icon.png" width="24" height="24" alt="Facebook"
+                      style="display:inline-block; border-radius:50%; border:0; outline:none; margin-left:6px;" />
+                </a>
+                <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
+                  <img src="https://i.ibb.co/V0Q10sGW/instagram-Icon.png" width="24" height="24" alt="Instagram"
+                      style="display:inline-block; border:0; outline:none; margin-left:6px;" />
+                </a>
+                <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
+                  <img src="https://i.ibb.co/hFR0Qwkx/twitter-Icon.png" width="24" height="24" alt="X"
+                      style="display:inline-block; border:0; outline:none; margin-left:6px;" />
+                </a>
+              </td>
+            </tr>
+          </mj-table>
+        </mj-column>
+      </mj-section>
+
+
+      <!-- HERO -->
+      <mj-hero
+        mode="fixed-height"
+        height="220px"
+        background-url="https://i.ibb.co/4ZV0v9kB/bg-Hero-Banner-2.png"
+        background-position="center center"
+        padding="0"
+      >
+        <mj-text
+          align="left"
+          color="#ffffff"
+          font-family="'Plus Jakarta Sans', Arial, Helvetica, sans-serif"
+          font-size="24px"
+          font-weight="400"
+          line-height="32px"
+          padding="80px 32px 0"
+        >
+          Good morning,
+        </mj-text>
+
+        <mj-text
+          align="left"
+          color="#ffffff"
+          font-family="'Plus Jakarta Sans', Arial, Helvetica, sans-serif"
+          font-size="24px"
+          font-weight="400"
+          line-height="32px"
+          padding="4px 32px 40px"
+        >
+          Here is today’s <span style="color:#F4B942; font-weight:600;">update</span>
+        </mj-text>
+      </mj-hero>
+
+
+      <!-- Today in CITY -->
+      <mj-section background-color="#ffffff" padding="25px 20px">
       <mj-column>
-        <mj-wrapper padding="0" background-color="#ffffff" border-radius="12px" css-class="container">
-
-          <!-- HERO (background image + overlay metin) -->
-          <mj-hero mode="fluid-height" height="200px" background-width="600px" background-height="200px"
-                   background-url="{{heroImageUrl}}" background-color="#1a1a1a">
-            <mj-text align="left" color="#333333" font-weight="700" font-size="14px" padding="16px" background-color="#ffffff" border-radius="4px" css-class="header-logo">INK</mj-text>
-            <mj-text color="#ffffff" font-size="20px" padding="0 30px">Good morning,</mj-text>
-            <mj-text color="#ffffff" font-size="28px" font-weight="700" padding="0 30px">{{city}}!</mj-text>
-            <mj-text color="#ffffff" font-size="16px" padding="0 30px">Here is today's <span style="color:#ffd700">update</span></mj-text>
-          </mj-hero>
-
-          <!-- Sponsors -->
-          <mj-section padding="0" background-color="#e8f4fd">
-            <mj-column>
-              <mj-text align="center" padding="20px 25px" color="#4a90e2" font-size="18px">Powered by our trusted local partners</mj-text>
-            </mj-column>
-          </mj-section>
-          <mj-section background-color="#e8f4fd" padding="0 20px 20px 20px">
-            {{#each sponsors}}
-            <mj-group>
-              {{#each this}}
-              <mj-column width="33.33%" padding="10px">
-                <mj-section background-color="#ffffff" border-radius="8px" padding="15px" css-class="sponsor">
-                  <mj-image src="{{logo}}" alt="{{name}}" width="50px" height="50px" padding="0 0 10px 0" />
-                  <mj-text align="center" font-size="12px" class="muted">
-                    <strong>{{name}}</strong><br/>{{tagline}}
-                  </mj-text>
-                </mj-section>
-              </mj-column>
-              {{/each}}
-            </mj-group>
-            {{/each}}
-          </mj-section>
-
-          <!-- Weather -->
-          <mj-section padding="25px 20px 10px 20px" background-color="#ffffff" border-bottom="1px solid #eeeeee">
-            <mj-column>
-              <mj-table>
-                <tr>
-                  <td style="font-size:20px; font-weight:700; padding:0;">Today's Weather</td>
-                  <td align="right" class="muted" style="font-size:14px;">{{date}}</td>
-                </tr>
-              </mj-table>
-              <mj-spacer height="12px"/>
-              <mj-table>
-                <tr>
-                  <td style="font-size:40px; padding-right:16px;">{{weather.icon}}</td>
-                  <td>
-                    <div style="font-size:22px; font-weight:700;">{{weather.condition}}</div>
-                    <div class="muted" style="font-size:16px;">{{weather.detail}}</div>
-                  </td>
-                </tr>
-              </mj-table>
-            </mj-column>
-          </mj-section>
-
-          <!-- Today's Brief -->
-          <mj-section padding="20px" background-color="#f8f9fa" border-bottom="1px solid #eeeeee">
-            <mj-column>
-              <mj-table>
-                <tr>
-                  <td style="font-size:20px; font-weight:700;">Today's Brief</td>
-                  <td><div style="height:3px; background:linear-gradient(90deg,#4a90e2,transparent);"></div></td>
-                </tr>
-              </mj-table>
-              {{#if todaysBrief.length}}
-                {{#each todaysBrief}}
-                  <mj-text padding="12px 0" font-size="16px"><span style="color:#ffa500; font-weight:700;">▶</span> {{this}}</mj-text>
-                {{/each}}
-              {{else}}
-                <mj-text padding="12px 0" font-size="16px"><span style="color:#ffa500; font-weight:700;">▶</span> Check out today's weather and plan your outdoor activities accordingly.</mj-text>
-              {{/if}}
-            </mj-column>
-          </mj-section>
-
-          <!-- Ad / Promo -->
-          <mj-section padding="30px 20px" background-color="#e8f4fd" border-bottom="1px solid #eeeeee">
-            <mj-column>
-              <mj-wrapper padding="0" background-color="#ffffff" border-radius="12px">
-                <mj-text align="center" padding="20px 20px 10px 20px" font-size="18px">Discover Local Business</mj-text>
-                <mj-text align="center" padding="0 25px 10px 25px" class="muted">Connect with trusted local partners</mj-text>
-                <mj-text align="center" padding="0 25px 20px 25px" class="muted">From home services to professional consultations, find the best local businesses in {{city}}.</mj-text>
-                <mj-button href="{{ad.ctaUrl}}" inner-padding="12px 24px" background-color="#4a90e2" color="#ffffff" font-weight="700" border-radius="6px">{{ad.ctaText}}</mj-button>
-                <mj-spacer height="20px" />
-              </mj-wrapper>
-            </mj-column>
-          </mj-section>
-
-          <!-- News -->
-          <mj-section padding="25px 20px 10px 20px" background-color="#ffffff">
-            <mj-column>
-              <mj-table>
-                <tr>
-                  <td style="font-size:20px; font-weight:700;">Local News</td>
-                  <td><div style="height:3px; background:linear-gradient(90deg,#4a90e2,transparent);"></div></td>
-                </tr>
-              </mj-table>
-              {{#if news.length}}
-                {{#each news}}
-                  <mj-wrapper padding="0 0 20px 0" css-class="card">
-                    <mj-section padding="20px">
-                      <mj-column>
-                        <mj-text font-size="18px" font-weight="700">{{title}}</mj-text>
-                        <mj-text class="muted">{{summary}}</mj-text>
-                        <mj-text padding="10px 0 0 0">
-                          <a class="news-link" href="{{link}}">Read more →</a>
-                        </mj-text>
-                      </mj-column>
-                    </mj-section>
-                  </mj-wrapper>
-                {{/each}}
-              {{else}}
-                <mj-text class="muted">We're working to bring you the latest local news from {{city}}.</mj-text>
-              {{/if}}
-            </mj-column>
-          </mj-section>
-
-          <!-- Events -->
-          {{#if events.length}}
-          <mj-section padding="25px 20px" background-color="#f8f9fa">
-            <mj-column>
-              <mj-table>
-                <tr>
-                  <td style="font-size:20px; font-weight:700;">Local Events</td>
-                  <td><div style="height:3px; background:linear-gradient(90deg,#4a90e2,transparent);"></div></td>
-                </tr>
-              </mj-table>
-              {{#each events}}
-                <mj-wrapper padding="0 0 15px 0" border-radius="12px" background-color="#ffffff" css-class="card" border-left="4px solid #2e78c7">
-                  <mj-section padding="20px">
-                    <mj-column>
-                      <mj-text font-size="18px" font-weight="600">{{title}}</mj-text>
-                      <mj-text>
-                        <span class="chip {{categoryClass}}">{{category}}</span>
-                      </mj-text>
-                      <mj-text class="muted">📅 {{date}}</mj-text>
-                      {{#if venue}}
-                        <mj-text class="muted">📍 {{venue}}</mj-text>
-                      {{/if}}
-                    </mj-column>
-                  </mj-section>
-                </mj-wrapper>
-              {{/each}}
-            </mj-column>
-          </mj-section>
-          {{/if}}
-
-          <!-- Sports -->
-          {{#if sports.summary}}
-          <mj-section padding="25px 20px" background-color="#ffffff">
-            <mj-column>
-              <mj-table>
-                <tr>
-                  <td style="font-size:20px; font-weight:700;">Sports Updates</td>
-                  <td><div style="height:3px; background:linear-gradient(90deg,#4a90e2,transparent);"></div></td>
-                </tr>
-              </mj-table>
-              <mj-wrapper padding="10px 0 20px 0" background-color="#f8f9fa" border-left="4px solid #27ae60" border-radius="12px">
-                <mj-section padding="20px">
-                  <mj-column>
-                    <mj-text>{{sports.summary}}</mj-text>
-                    {{#if sports.readMoreLink}}
-                    <mj-text><a href="{{sports.readMoreLink}}" class="news-link">Read more ↗</a></mj-text>
-                    {{/if}}
-                  </mj-column>
-                </mj-section>
-              </mj-wrapper>
-
-              {{#if sports.matches.length}}
-              {{#each sports.matches}}
-              <mj-wrapper padding="0 0 15px 0" background-color="#ffffff" border-left="3px solid #27ae60" border-radius="10px">
-                <mj-section padding="15px" background-color="#ffffff">
-                  <mj-column>
-                    <mj-text font-size="11px" font-weight="700" color="#27ae60" text-transform="uppercase">{{sport}}</mj-text>
-                    <mj-text font-size="15px" font-weight="600">{{title}}</mj-text>
-                    {{#if teams}}
-                      <mj-text class="muted">🏟️ {{teams}}</mj-text>
-                    {{/if}}
-                    <mj-text class="muted">📅 {{date}}</mj-text>
-                    {{#if venue}}
-                      <mj-text class="muted">📍 {{venue}}</mj-text>
-                    {{/if}}
-                  </mj-column>
-                </mj-section>
-              </mj-wrapper>
-              {{/each}}
-              {{else}}
-                <mj-text class="muted" align="center">No upcoming matches found for {{city}}.</mj-text>
-              {{/if}}
-
-            </mj-column>
-          </mj-section>
-          {{/if}}
-
-        </mj-wrapper>
+        <mj-text align="center" padding="0">
+          <img src="https://i.ibb.co/ZzD2pXyb/location-Pin.png" alt="Location Pin" width="40" height="20" style="vertical-align: middle; margin-right: 8px;" />
+          <span class="city-title">Today in {{city}}</span>
+        </mj-text>
       </mj-column>
     </mj-section>
 
+    <!-- Powered by -->
+    <mj-section background-color="#ffffff" padding="8px 16px 16px">
+      <mj-column>
+        <mj-text align="center" padding="0">
+          <span
+            style="
+              font-family:'Plus Jakarta Sans', Arial, Helvetica, sans-serif;
+              font-size:24px;
+              line-height:29px;
+              font-weight:500;    
+              font-style:italic;       
+              color:#3E7DBB;                         
+              display:inline-block;
+            "
+          >
+            Powered by our trusted local partners
+          </span>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+
+      <!-- ===== Sponsors ===== -->
+      {{#each sponsors}}
+        <mj-section background-color="#ffffff" padding="0px 12px">
+          <mj-group>
+            {{#each this}}
+              <mj-column width="33.33%">
+                <mj-wrapper css-class="s-card" padding=2px>
+                  <mj-text align="center" padding="12px 0 8px">
+                    <img
+                      src="{{logo}}"
+                      alt="{{name}}"
+                      width="72"
+                      height="72"
+                      style="display:block;margin:10px auto;"
+                    />
+                  </mj-text>
+                  <mj-text align="center" css-class="s-pad">
+                    <div class="s-name">{{name}}</div>
+                    <div class="s-meta">Niche – {{tagline}}</div>
+                    {{#if phone}}<div class="s-meta">{{phone}}</div>{{/if}}
+                    <a class="s-link" href="{{#if website}}{{website}}{{else}}#{{/if}}">Website</a>
+                  </mj-text>
+                </mj-wrapper>
+              </mj-column>
+            {{/each}}
+          </mj-group>
+        </mj-section>
+      {{/each}}
+
+
+
+
+      <!-- ===== Today's Weather ===== -->
+      <mj-section padding="10px 0 " background-color="#ffffff" width="100%">
+        <mj-column width="100%">
+            <mj-image src="https://i.ibb.co/gFyxNy2P/Header-5.png" alt="Today’s Weather" css-class="section-header" fluid-on-mobile="true"/>
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#ffffff" css-class="card" padding="0px" width="100%">
+        <mj-column>
+          <mj-table css-class="list-table" width="100%" role="presentation" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="width:26px;">
+                {{#if weather.icon}}
+                  <span style="font-size:18px;">{{weather.icon}}</span>
+                {{else}}
+                  <span class="bullet-dot"></span>
+                {{/if}}
+              </td>
+              <td>
+                <div><strong>{{weather.condition}}</strong> <span style="font-size:16px" class="muted">/ {{date}}</span></div>
+                <div class="" style="margin-top:2px;font-size:16px">{{weather.detail}}</div>
+              </td>
+            </tr>
+          </mj-table>
+        </mj-column>
+      </mj-section>
+
+      <!-- ===== Today’s Brief ===== -->
+      <mj-section padding="0px"  background-color="#ffffff">
+        <mj-column width="100%">
+            <mj-image src="https://i.ibb.co/r2KWmJJ3/Header-1.png" alt="Today’s Brief" css-class="section-header" fluid-on-mobile="true" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#ffffff" css-class="card" padding="0px" width="100%">
+        <mj-column>
+          <mj-table css-class="list-table" width="100%" role="presentation" cellpadding="0" cellspacing="0" style="padding:0px">
+            {{#each todaysBrief}}
+            <tr class="evt-row" >
+              <td style="width:24px;padding:10px 0 12px 10px;">
+                  <img src="https://i.ibb.co/cXNsWnVV/right-arrows-1.png" alt="" width="24" />
+              </td>
+              <td style="font-size:16px;padding:10px 0 12px 10px;">{{this}}</td>
+            </tr>
+            {{/each}}
+          </mj-table>
+        </mj-column>
+      </mj-section>
+
+     <!-- ===== Membership Message / CTA ===== -->
+      <mj-section background-color="#ffffff" border-radius="12px" padding="0" css-class="card">
+        <mj-column>
+          <mj-text align="center" font-size="24px" font-weight="700" padding="16px 16px 0">
+            A message from the {{city}} <span class="brand">update</span>.
+          </mj-text>
+
+          <mj-image
+            src="https://i.ibb.co/1f957v4h/Message.png"
+            alt="Members make it possible"
+            padding="6px 8px 10px"
+            fluid-on-mobile="true" />
+
+          <mj-button
+            href="{{ad.ctaUrl}}"
+            align="center"
+            font-size="16px"
+            inner-padding="14px 24px"
+            border-radius="10px">
+            Become a {{city}} update member
+          </mj-button>
+        </mj-column>
+      </mj-section>
+
+
+      <!-- ===== News ===== -->
+      <mj-section padding="16px 0 0" background-color="#ffffff" width="100%">
+        <mj-column width="100%">
+            <mj-image src="https://i.ibb.co/0jF7JMV3/Header-2.png" alt="News" css-class="section-header" fluid-on-mobile="true"/>
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#ffffff"  padding="0px 0px 0px" width="100%">
+        <mj-column>
+          {{#each news}}
+            <mj-text>
+              <div class="news-card">
+                <div class="news-title">{{title}}</div>
+                {{#if summary}}<div class="muted" style="margin-top:6px;">{{summary}}</div>{{/if}}
+                <div class="right-cta" style="margin-top:6px;"><a href="{{link}}">Read more →</a></div>
+              </div>
+            </mj-text>
+          {{/each}}
+        </mj-column>
+      </mj-section>
+
+      <!-- ===== Events ===== -->
+      <mj-section padding="16px 8px 0"  background-color="#ffffff">
+        <mj-column width="100%">
+            <mj-image src="https://i.ibb.co/gbxCx6N2/Header-3.png" alt="Events" css-class="section-header" fluid-on-mobile="true" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#ffffff" css-class="event-card" padding="0px 0px 0px" width="90%">
+        <mj-column>
+          <mj-table css-class="list-table" width="90%" role="presentation" cellpadding="0" cellspacing="0">
+            {{#each events}}
+            <tr class="evt-row" style="margin-bottom:8px;">
+              <td style="width:32px; vertical-align:top; padding:16px 12px 16px 0;">
+                <span style="font-size:18px; line-height:1; display:inline-block;">{{icon}}</span>
+              </td>
+              <td style="padding-bottom:16px; padding-top:12px;  border-bottom:1px solid #D7E3FA;">
+                <div><span class="chip" style="font-size:16px;">{{category}}</span> &nbsp; <strong style="font-size:16px;">{{title}}</strong></div>
+                <div class="evt-meta" style="font-size:16px;">{{date}}{{#if venue}} | {{venue}}{{/if}}</div>
+              </td>
+            </tr>
+            {{/each}}
+          </mj-table>
+        </mj-column>
+      </mj-section>
+
+      <!-- ===== Sports ===== -->
+      <mj-section padding="16px 8px 0"  background-color="#ffffff">
+        <mj-column width="100%">
+            <mj-image src="https://i.ibb.co/qY7FGNLd/Header-4.png" alt="Sports" css-class="section-header" fluid-on-mobile="true" />
+        </mj-column>
+      </mj-section>
+
+      <mj-section background-color="#ffffff" css-class="event-card" padding="0px 0px 0px" width="100%">
+        <mj-column>
+          {{#if sports.summary}}
+            <mj-text css-class="sports-note" style="font-size:16px;">{{{sports.summary}}}</mj-text>
+          {{/if}}
+          {{#if sports.readMoreLink}}
+            <mj-text><a class="right-cta"style="color:#F4B942" href="{{sports.readMoreLink}}">Read more →</a></mj-text>
+          {{/if}}
+
+          {{#if sports.matches.length}}
+          <mj-spacer height="8px" />
+          <mj-table css-class="list-table" width="100%" role="presentation" cellpadding="0" cellspacing="0">
+            {{#each sports.matches}}
+            <tr class="evt-row">
+              <td style="width:22px;">
+                <span style="font-size:18px; line-height:1;">{{icon}}</span>
+              </td>
+              <td>
+                <div><span class="chip">{{sport}}</span> &nbsp; <strong>{{title}}</strong></div>
+                <div class="evt-meta">{{date}}{{#if venue}} | {{venue}}{{/if}}</div>
+              </td>
+            </tr>
+            {{/each}}
+          </mj-table>
+          {{/if}}
+        </mj-column>
+      </mj-section>
+
+      <!-- Footer -->
+      <mj-section css-class="footer" background-color="#041220" padding="24px 16px">
+        <mj-column>
+          <mj-image src="https://i.ibb.co/y9Bjn3y/logo-white.png" alt="Update Ink" width="42px" align="center" />
+          <mj-text align="center" color="#cbd5e1" padding="10px 0 0">Follow us for updates :</mj-text>
+                   <mj-table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            <tr>
+
+              <td align="middle" style="vertical-align:middle; width:50%;">
+                <a href="#" style="display:inline-block; text-decoration:none;padding-left:0px">
+                  <img src="https://i.ibb.co/SDxwQThz/facebook-Icon.png" width="24" height="24" alt="Facebook"
+                      style="display:inline-block; border-radius:50%; border:0; outline:none; margin-left:6px;" />
+                </a>
+                <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
+                  <img src="https://i.ibb.co/V0Q10sGW/instagram-Icon.png" width="24" height="24" alt="Instagram"
+                      style="display:inline-block; border:0; outline:none; margin-left:6px;" />
+                </a>
+                <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
+                  <img src="https://i.ibb.co/3xsnRJy/twitter-x-white.png" width="24" height="24" alt="X"
+                      style="display:inline-block; border:0; outline:none; margin-left:6px;" />
+                </a>
+              </td>
+            </tr>
+          </mj-table>
+          <mj-text align="center" color="#94a3b8" padding="6px 0 0"><a href="{{assets.unsubscribeUrl}}">Unsubscribe</a></mj-text>
+        </mj-column>
+      </mj-section>
+
+    </mj-wrapper>
   </mj-body>
 </mjml>
+
+
 `;
