@@ -161,10 +161,9 @@ export const MJML_TEMPLATE = `
                     />
                   </mj-text>
                   <mj-text align="center" css-class="s-pad">
-                    <div class="s-name">{{name}}</div>
+                    {{#if website}}<div class="s-name"><a href="{{website}}" target="_blank" style="color:#111827; text-decoration:none; font-weight:700;">{{name}}</a></div>{{else}}<div class="s-name">{{name}}</div>{{/if}}
                     <div class="s-meta">Niche – {{tagline}}</div>
                     {{#if phone}}<div class="s-meta">{{phone}}</div>{{/if}}
-                    <a class="s-link" href="{{#if website}}{{website}}{{else}}#{{/if}}">Website</a>
                   </mj-text>
                 </mj-wrapper>
               </mj-column>
@@ -225,7 +224,8 @@ export const MJML_TEMPLATE = `
         </mj-column>
       </mj-section>
 
-     <!-- ===== Membership Message / CTA ===== -->
+     <!-- ===== Membership Message / CTA ===== become a member -->
+      <!-- COMMENTED OUT - İleride açılacak servis
       <mj-section background-color="#ffffff" border-radius="12px" padding="0" css-class="card">
         <mj-column>
           <mj-text align="center" font-size="24px" font-weight="700" padding="16px 16px 0">
@@ -248,6 +248,7 @@ export const MJML_TEMPLATE = `
           </mj-button>
         </mj-column>
       </mj-section>
+      -->
 
 
       <!-- ===== News ===== -->
@@ -287,7 +288,7 @@ export const MJML_TEMPLATE = `
                 <span style="font-size:18px; line-height:1; display:inline-block;">{{icon}}</span>
               </td>
               <td style="padding-bottom:16px; padding-top:12px;  border-bottom:1px solid #D7E3FA;">
-                <div><span class="chip" style="font-size:16px;">{{category}}</span> &nbsp; <strong style="font-size:16px;">{{title}}</strong></div>
+                <div><span class="chip" style="font-size:16px;">{{category}}</span> &nbsp; <strong style="font-size:16px;">{{#if link}}<a href="{{link}}" target="_blank" style="color:#2d2d2d; text-decoration:none;">{{title}}</a>{{else}}{{title}}{{/if}}</strong></div>
                 <div class="evt-meta" style="font-size:16px;">{{date}}{{#if venue}} | {{venue}}{{/if}}</div>
               </td>
             </tr>

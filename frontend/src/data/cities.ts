@@ -1,119 +1,78 @@
 export interface CityOption {
   value: string;
   label: string;
-  state: string;
+  state?: string;
   aliases?: string[]; // Yazım hataları ve alternatif isimler için
 }
 
-// Bellek içi cache: CSV bir kez yüklensin
+// Bellek içi cache: API'den bir kez yüklensin
 let CITIES_CACHE: CityOption[] | null = null;
 
-// CSV'den şehirleri yükleyen fonksiyon
-export const loadCitiesFromCSV = async (): Promise<CityOption[]> => {
+// Backend API'den şehirleri yükleyen fonksiyon
+export const loadCitiesFromAPI = async (): Promise<CityOption[]> => {
   try {
     if (CITIES_CACHE) return CITIES_CACHE;
-    const response = await fetch('/cities.csv');
-    let csvText = await response.text();
-    // BOM temizleme
-    if (csvText.charCodeAt(0) === 0xFEFF) {
-      csvText = csvText.slice(1);
-    }
     
-    // CSV'yi parse et
-    const lines = csvText.split(/\r?\n/).filter(line => line.trim());
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const response = await fetch(`${apiUrl}/cities`);
+    const data = await response.json();
+    
+    if (!data.success || !data.cities) {
+      throw new Error('Failed to load cities from API');
+    }
+
+    // Backend'ten gelen format: { "Indiana (IN)": [{value: "fishers", label: "Fishers"}] }
     const cities: CityOption[] = [];
     
-    // Header var mı kontrol et
-    const hasHeader = !lines[0].match(/"([^"]+)",\s*"([^"]+)"/);
-    const startIndex = hasHeader ? 1 : 0;
-
-    for (let i = startIndex; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
-      // Quotes'lu formatı dene
-      let cityName = '';
-      let stateCode = '';
-      const quoted = line.match(/"([^\"]+)"\s*,\s*"([^\"]+)"/);
-      if (quoted) {
-        cityName = quoted[1].trim();
-        stateCode = quoted[2].trim();
-      } else {
-        // Basit virgül ayrımı (unquoted)
-        const parts = line.split(',');
-        if (parts.length >= 2) {
-          cityName = parts[0].trim();
-          stateCode = parts[1].trim();
-        }
-      }
-
-      if (!cityName || !stateCode) continue;
-
-      const stateName = getStateFullName(stateCode);
-      cities.push({
-        value: cityName,
-        label: `${cityName}, ${stateCode}`,
-        state: stateName,
-        aliases: [cityName.toLowerCase(), stateCode.toLowerCase(), stateName.toLowerCase()]
+    Object.entries(data.cities).forEach(([stateLabel, stateCities]) => {
+      const stateCode = stateLabel.match(/\(([^)]+)\)$/)?.[1] || '';
+      (stateCities as any[]).forEach(city => {
+        cities.push({
+          value: city.value,
+          label: `${city.label}, ${stateCode}`, // Eyalet kodu eklendi
+          state: stateCode,
+          aliases: [city.label.toLowerCase(), stateCode.toLowerCase()]
+        });
       });
-    }
-    
+    });
+
+    // Cache'le ve döndür
     CITIES_CACHE = cities;
-    return CITIES_CACHE;
+    console.log(`✅ Loaded ${cities.length} cities from API`);
+    return cities;
   } catch (error) {
-    console.error('CSV yüklenirken hata:', error);
+    console.error('Failed to load cities from API:', error);
     // Hata durumunda fallback olarak temel şehirler
     CITIES_CACHE = getFallbackCities();
     return CITIES_CACHE;
   }
 };
 
-// State code'ları full name'e çeviren fonksiyon
-const getStateFullName = (stateCode: string): string => {
-  const stateMap: { [key: string]: string } = {
-    'AK': 'Alaska', 'AL': 'Alabama', 'AR': 'Arkansas', 'AZ': 'Arizona',
-    'CA': 'California', 'CO': 'Colorado', 'CT': 'Connecticut', 'DC': 'District of Columbia',
-    'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia', 'HI': 'Hawaii',
-    'IA': 'Iowa', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana',
-    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'MA': 'Massachusetts',
-    'MD': 'Maryland', 'ME': 'Maine', 'MI': 'Michigan', 'MN': 'Minnesota',
-    'MO': 'Missouri', 'MS': 'Mississippi', 'MT': 'Montana', 'NC': 'North Carolina',
-    'ND': 'North Dakota', 'NE': 'Nebraska', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
-    'NM': 'New Mexico', 'NV': 'Nevada', 'NY': 'New York', 'OH': 'Ohio',
-    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island',
-    'SC': 'South Carolina', 'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas',
-    'UT': 'Utah', 'VA': 'Virginia', 'VT': 'Vermont', 'WA': 'Washington',
-    'WI': 'Wisconsin', 'WV': 'West Virginia', 'WY': 'Wyoming'
-  };
-  
-  return stateMap[stateCode.toUpperCase()] || stateCode;
-};
-
-// Fallback şehirler (CSV yüklenemezse)
+// Fallback şehirler (API yüklenemezse)
 const getFallbackCities = (): CityOption[] => [
   {
-    value: "New York",
+    value: "new-york",
     label: "New York, NY",
-    state: "New York",
+    state: "NY",
     aliases: ["nyc", "new york city", "manhattan"]
   },
   {
-    value: "Los Angeles",
-    label: "Los Angeles, CA",
-    state: "California",
-    aliases: ["la", "los angeles", "hollywood"]
+    value: "fishers",
+    label: "Fishers, IN",
+    state: "IN",
+    aliases: ["fishers", "indiana"]
   },
   {
-    value: "Chicago",
+    value: "chicago",
     label: "Chicago, IL",
-    state: "Illinois",
+    state: "IL",
     aliases: ["chicago", "windy city"]
   }
 ];
 
 // Şehir arama fonksiyonu
 export const searchCities = async (query: string, limit: number = 50): Promise<CityOption[]> => {
-  const cities = await loadCitiesFromCSV();
+  const cities = await loadCitiesFromAPI();
   const trimmed = query.trim();
   if (!trimmed) return cities.slice(0, limit);
 
@@ -145,7 +104,7 @@ export const searchCities = async (query: string, limit: number = 50): Promise<C
 
 // Şehir değerini CityOption'a çevirme
 export const getCityOption = async (cityValue: string): Promise<CityOption | null> => {
-  const cities = await loadCitiesFromCSV();
+  const cities = await loadCitiesFromAPI();
   return cities.find(city => city.value === cityValue) || null;
 };
 
@@ -157,7 +116,7 @@ export const getCityLabel = async (cityValue: string): Promise<string> => {
 
 // Tüm şehirleri getir
 export const getAllCities = async (): Promise<CityOption[]> => {
-  return await loadCitiesFromCSV();
+  return await loadCitiesFromAPI();
 }; 
 
 // Paginasyonlu arama (infinite scroll için)
@@ -170,4 +129,11 @@ export const searchCitiesPaged = async (
   const total = all.length;
   const items = all.slice(offset, offset + limit);
   return { items, total };
+};
+
+// Debugging: Tüm şehir sayısını logla
+export const debugCityCount = async () => {
+  const cities = await getAllCities();
+  console.log(`🏙️ Total cities loaded: ${cities.length}`);
+  return cities.length;
 };

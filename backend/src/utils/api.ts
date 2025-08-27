@@ -7,7 +7,7 @@ const API_CONFIG = {
   SERPAPI_BASE_URL: 'https://serpapi.com/search',
   OPENWEATHER_BASE_URL: 'https://api.openweathermap.org/data/2.5',
   EVENTBRITE_BASE_URL: 'https://www.eventbriteapi.com/v3',
-  TIMEOUT: 10000, // 10 saniye timeout
+  TIMEOUT: 60000, // 60 saniye timeout
   MAX_RETRIES: 2
 };
 

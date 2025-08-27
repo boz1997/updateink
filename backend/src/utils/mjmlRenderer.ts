@@ -3,9 +3,10 @@ import Handlebars from 'handlebars';
 import juice from 'juice';
 import { MJML_TEMPLATE } from './mjmlTemplate';
 import { CachedCityData } from './cityData';
+import { getSupabaseClient } from './database';
 
 export interface SponsorCard { name: string; tagline: string; logo: string ,phone: string; website: string;}
-export interface EventItem { title: string; category: string; categoryClass: string; date: string; venue?: string }
+export interface EventItem { title: string; category: string; categoryClass: string; date: string; venue?: string; link?: string }
 export interface NewsItem { title: string; summary: string; link: string }
 export interface MatchItem { sport: string; title: string; date: string; venue?: string; teams?: string }
 
@@ -21,78 +22,74 @@ export interface EmailVM {
   events: EventItem[];
   sports: { summary?: string; readMoreLink?: string; matches: MatchItem[] };
 }
-const sponsors: SponsorCard[][] = [ //sponsors grouped by 3 for layout,default 9 sponsors
-  [
-    {
-      name: 'A1 Roofing',
-      tagline: 'Niche – Roofing',
-      logo: 'https://i.ibb.co/8Lz0FvWr/A1roofing.png',
-      phone: '260-348-9338',
-      website: ''
-    },
-    {
-      name: 'Blazing Heat HVAC',
-      tagline: 'Niche – HVAC',
-      logo: 'https://i.ibb.co/rfKQ0bD7/blazing-Heat.png',
-      phone: '260-797-1850',
-      website: ''
-    },
-    {
-      name: 'Go With The Flow Plumbing',
-      tagline: 'Niche – Plumbing',
-      logo: 'https://i.ibb.co/MyxwgSWd/go-With-Flow.png',
-      phone: '260-837-5555',
-      website: ''
-    }
-  ],
-  [
+// Fetch sponsors from database for a specific city
+async function fetchSponsorsForCity(citySlug: string): Promise<SponsorCard[][]> {
+  const supabase = getSupabaseClient();
   
-    {
-      name: 'Sam Snyder',
-      tagline: 'Niche – Real Estate Agent',
-      logo: 'https://i.ibb.co/yFYYsHhw/sam-Snyder.png',
-      phone: '260-466-2595',
-      website: ''
-    },
-    {
-      name: 'A1 Roofing',
-      tagline: 'Niche – Roofing',
-      logo: 'https://i.ibb.co/8Lz0FvWr/A1roofing.png',
-      phone: '260-348-9338',
-      website: ''
-    },
-    {
-      name: 'Blazing Heat HVAC',
-      tagline: 'Niche – HVAC',
-      logo: 'https://i.ibb.co/rfKQ0bD7/blazing-Heat.png',
-      phone: '260-797-1850',
-      website: ''
+  try {
+    const { data: sponsors, error } = await supabase
+      .from('sponsors')
+      .select('sponsor_name, sponsor_tag, sponsor_url, sponsor_phone, sponsor_website, display_order')
+      .eq('city_slug', citySlug)
+      .eq('is_active', true)
+      .order('display_order', { ascending: true })
+      .limit(9);
+
+    if (error || !sponsors || sponsors.length === 0) {
+      console.warn(`No sponsors found for city: ${citySlug}`);
+      return getDefaultSponsors();
     }
-  ],
-  [
-    {
-      name: 'Go With The Flow Plumbing',
-      tagline: 'Niche – Plumbing',
-      logo: 'https://i.ibb.co/MyxwgSWd/go-With-Flow.png',
-      phone: '260-837-5555',
-      website: ''
-    },
-    {
-      name: 'Sam Snyder',
-      tagline: 'Niche – Real Estate Agent',
-      logo: 'https://i.ibb.co/yFYYsHhw/sam-Snyder.png',
-      phone: '260-466-2595',
-      website: ''
-    },
-    {
-      name: 'A1 Roofing',
-      tagline: 'Niche – Roofing',
-      logo: 'https://i.ibb.co/8Lz0FvWr/A1roofing.png',
-      phone: '260-348-9338',
-      website: ''
+
+    // Convert to SponsorCard format
+    const sponsorCards: SponsorCard[] = sponsors.map(s => ({
+      name: s.sponsor_name,
+      tagline: s.sponsor_tag,
+      logo: s.sponsor_url,
+      phone: s.sponsor_phone || '',
+      website: s.sponsor_website || ''
+    }));
+
+    // Group by 3 for layout (MJML template expects this)
+    const grouped: SponsorCard[][] = [];
+    for (let i = 0; i < sponsorCards.length; i += 3) {
+      grouped.push(sponsorCards.slice(i, i + 3));
     }
-  ]
-];
+
+    return grouped;
+  } catch (error) {
+    console.error(`Error fetching sponsors for ${citySlug}:`, error);
+    return getDefaultSponsors();
+  }
+}
+
+// Fallback sponsors if DB query fails
+function getDefaultSponsors(): SponsorCard[][] {
+  return [
+    [
+      {
+        name: 'Local Business Partner',
+        tagline: 'Your trusted partner',
+        logo: 'https://via.placeholder.com/100x100.png?text=Partner1',
+        phone: '(555) 000-0001',
+        website: 'https://example.com'
+      },
+      {
+        name: 'Community Service Pro',
+        tagline: 'Professional services',
+        logo: 'https://via.placeholder.com/100x100.png?text=Partner2',
+        phone: '(555) 000-0002',
+        website: 'https://example.com'
+      },
+      {
+        name: 'Local Expert',
+        tagline: 'Expert solutions',
+        logo: 'https://via.placeholder.com/100x100.png?text=Partner3',
+        phone: '(555) 000-0003',
+        website: 'https://example.com'
+      }
+    ]
+  ];
+}
 
 
 
@@ -191,12 +188,16 @@ const sponsors: SponsorCard[][] = [ //sponsors grouped by 3 for layout,default 9
   }
 
 
-export function mapToVM(content: CachedCityData): EmailVM {
+export async function mapToVM(content: CachedCityData): Promise<EmailVM> {
   const weather = {
     icon: content.weather?.current?.icon || '☀️',
     condition: content.weather?.current?.condition || content.weather?.condition || 'Clear',
     detail: `${content.weather?.current?.temp ?? (content.weather?.high && content.weather?.low ? `High- ${content.weather.high} Low- ${content.weather.low}` : '--')}° • ${content.weather?.current?.wind ?? content.weather?.wind ?? ''}`.trim()
   };
+
+  // Fetch sponsors from database based on city
+  const citySlug = content.city.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const sponsors = await fetchSponsorsForCity(citySlug);
 
   const todaysBrief = (content.todaysBrief || []).map((x: any) => x?.title || x?.text || x?.content || String(x)).slice(0, 5);
   const news = (content.news || []).slice(0, 4).map((n: any) => ({ title: n.title, summary: n.summary || n.snippet || '', link: n.link || n.originalLink || '#' }));
@@ -206,6 +207,7 @@ export function mapToVM(content: CachedCityData): EmailVM {
     categoryClass: (e.category || 'other').toLowerCase(),
     date: e.date || 'Date TBD',
     venue: e.venue?.name || e.venue,
+    link: e.link || e.url || null,
     icon: EVENT_ICON_MAP[e.category?.toLowerCase()] || EVENT_ICON_MAP.default
   }));
   const matches = (content.sports?.matches || []).slice(0, 8).map((m: any) => ({
@@ -226,7 +228,8 @@ export function mapToVM(content: CachedCityData): EmailVM {
   };
 }
 
-export function renderMjml(vm: EmailVM): string {
+export async function renderMjml(content: CachedCityData): Promise<string> {
+  const vm = await mapToVM(content);
   const hbs = Handlebars.compile(MJML_TEMPLATE);
   const mjml = hbs(vm);
   const { html, errors } = mjml2html(mjml, { beautify: false, validationLevel: 'soft' });

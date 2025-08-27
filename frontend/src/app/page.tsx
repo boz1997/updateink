@@ -51,7 +51,7 @@ export default function Home() {
       .then((res) => res.json())
       .then(async (data) => {
         if (data.city) {
-          // Match IP city with CSV list
+          // Match IP city with API list
           try {
             const { searchCities } = await import('../data/cities');
             const matchingCities = await searchCities(data.city);
@@ -62,9 +62,9 @@ export default function Home() {
               setCity(bestMatch.value);
               console.log('🏙️ City detected from IP:', bestMatch.label);
             } else {
-              // Fallback to raw IP city if not found in CSV
+              // Fallback to raw IP city if not found in API
               setCity(data.city);
-              console.log('⚠️ IP city not found in CSV:', data.city);
+              console.log('⚠️ IP city not found in API:', data.city);
             }
           } catch (error) {
             console.error('City search error:', error);

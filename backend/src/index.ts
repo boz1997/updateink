@@ -16,6 +16,7 @@ import { createBeehiivPost } from './utils/beehiiv';
 import { getCachedCityDataForToday } from './utils/cityData';
 import { buildBeehiivHtmlFromCityData, toEmailSafeHtml } from './utils/beehiivTemplate';
 import { renderMjml, mapToVM, toEmailSafeBody } from './utils/mjmlRenderer';
+import { getSupabaseClient } from './utils/database';
 
 // Environment variables'ları yükle
 dotenv.config();
@@ -238,6 +239,79 @@ app.get('/beehiiv/create-from-cache', async (req, res) => {
   }
 });
 
+// Get active cities for dropdown
+app.get('/cities', async (req, res) => {
+  try {
+    const supabase = getSupabaseClient();
+    const { data: cities, error } = await supabase
+      .from('city_pub')
+      .select('city_slug, city_name, state_code, state_name')
+      .eq('is_active', true)
+      .order('state_name', { ascending: true })
+      .order('city_name', { ascending: true });
+
+    if (error) {
+      return res.status(500).json({ success: false, error: error.message });
+    }
+
+    // Group by state for frontend dropdown
+    const groupedByState = cities?.reduce((acc: any, city) => {
+      const stateKey = `${city.state_name} (${city.state_code})`;
+      if (!acc[stateKey]) {
+        acc[stateKey] = [];
+      }
+      acc[stateKey].push({
+        value: city.city_slug,
+        label: city.city_name
+      });
+      return acc;
+    }, {}) || {};
+
+    res.json({ success: true, cities: groupedByState });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Send to single city (new simplified endpoint)
+app.get('/beehiiv/send-city', async (req, res) => {
+  try {
+    const { city, subject } = req.query as any;
+    if (!city || !subject) {
+      return res.status(400).json({ success: false, error: 'city and subject are required' });
+    }
+
+    const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const cached = await getCachedCityDataForToday(city);
+    if (!cached) return res.status(404).json({ success: false, error: `No cache for today for ${city}` });
+
+    const compiledHtml = await renderMjml(cached);
+    const bodyContent = toEmailSafeBody(compiledHtml);
+
+    const result = await createBeehiivPost({
+      title: subject,
+      html: bodyContent,
+      citySlug: citySlug, // Will lookup publication_id from DB
+      status: 'confirmed',
+      hideFromFeed: true,
+      emailSubject: subject
+      // No segmentIds = send to all subscribers of that publication
+    });
+
+    if (!result.success) return res.status(500).json({ success: false, error: result.error });
+
+    res.json({ 
+      success: true, 
+      postId: result.postId, 
+      response: result.response,
+      city: city,
+      citySlug: citySlug
+    });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // MJML önizleme: derlenmiş HTML döner
 app.get('/preview-beehiiv', async (req, res) => {
   try {
@@ -245,8 +319,7 @@ app.get('/preview-beehiiv', async (req, res) => {
     const cached = await getCachedCityDataForToday(city);
     if (!cached) return res.status(404).send('No cache for today');
 
-    const vm = mapToVM(cached);
-    const html = renderMjml(vm);
+    const html = await renderMjml(cached);
     res.set('Content-Type', 'text/html; charset=utf-8').send(html);
   } catch (e: any) {
     res.status(500).send(e.message);
@@ -264,8 +337,7 @@ app.get('/beehiiv/send-mjml', async (req, res) => {
     const cached = await getCachedCityDataForToday(city);
     if (!cached) return res.status(404).json({ success: false, error: `No cache for today for ${city}` });
 
-    const vm = mapToVM(cached);
-    const compiledHtml = renderMjml(vm);
+    const compiledHtml = await renderMjml(cached);
     const bodyContent = toEmailSafeBody(compiledHtml);
 
     const result = await createBeehiivPost({
@@ -587,8 +659,7 @@ app.get('/preview-beehiiv', async (req, res) => {
     const cached = await getCachedCityDataForToday(city);
     if (!cached) return res.status(404).send('No cache for today');
 
-    const vm = mapToVM(cached);
-    const html = renderMjml(vm);
+    const html = await renderMjml(cached);
     res.set('Content-Type', 'text/html; charset=utf-8').send(html);
   } catch (e: any) {
     res.status(500).send(e.message);
@@ -606,8 +677,7 @@ app.get('/beehiiv/send-mjml', async (req, res) => {
     const cached = await getCachedCityDataForToday(city);
     if (!cached) return res.status(404).json({ success: false, error: `No cache for today for ${city}` });
 
-    const vm = mapToVM(cached);
-    const compiledHtml = renderMjml(vm);
+    const compiledHtml = await renderMjml(cached);
     const bodyContent = toEmailSafeBody(compiledHtml);
 
     const result = await createBeehiivPost({
