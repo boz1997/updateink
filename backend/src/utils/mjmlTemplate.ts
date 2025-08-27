@@ -41,11 +41,25 @@ export const MJML_TEMPLATE = `
       .s-card{border:0px solid #e5e7eb;border-radius:12px;background:#fff} 
       .s-pad{padding:0} 
       
+      /* Beehiiv header'ını gizle */
+      .beehiiv-header, 
+      [data-beehiiv-header],
+      .publication-header,
+      .email-header,
+      .newsletter-header,
+      .beehiiv-publication-header,
+      .header-wrapper,
+      .publication-name,
+      .publication-date { 
+        display: none !important; 
+        height: 0 !important; 
+        overflow: hidden !important; 
+      }
       
     </mj-style>
   </mj-head>
 
-  <mj-body background-color="#fffff" width="680px" css-class="container">
+  <mj-body background-color="#ffffff" width="680px" css-class="container">
     <mj-wrapper padding="0">
 
       <!-- Top bar: logo + socials -->

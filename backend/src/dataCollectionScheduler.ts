@@ -3,6 +3,7 @@ import cron from 'node-cron';
 import dotenv from 'dotenv';
 import { checkDateData } from './utils/database';
 import { adminNotification } from './utils/adminNotification';
+import { SCHEDULE_CONFIG } from './config/scheduleConfig';
 
 // Environment config
 dotenv.config();
@@ -44,15 +45,15 @@ export class DataCollectionScheduler {
   public start() {
     console.log('📊 Data Collection Scheduler starting...');
     
-    // Her gün 08:00'da veri toplama (Türkiye saati)
-    cron.schedule('0 5 * * *', () => { // UTC 05:00 = TR 08:00
-      console.log('📊 Daily data collection job triggered at 08:00 AM (TR) / 05:00 AM (UTC)');
+    const config = SCHEDULE_CONFIG.DATA_COLLECTION;
+    cron.schedule(config.time, () => {
+      console.log(`📊 ${config.description}`);
       this.collectDailyData();
     }, {
-      timezone: 'UTC'
+      timezone: config.timezone
     });
 
-    console.log('✅ Data Collection Scheduler started successfully');
+    console.log(`✅ Data Collection: ${config.time} (${config.timezone})`);
   }
 
   // Ana veri toplama fonksiyonu

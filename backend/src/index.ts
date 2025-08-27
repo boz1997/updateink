@@ -7,10 +7,9 @@ import { getNewsHandler, getTodaysBriefHandler } from './news';
 import { getEventsHandler } from './events';
 import { getSportsHandler } from './sports';
 import { getWeatherHandler, getWeatherForEmailHandler } from './weather';
-import { testEmailHandler } from './testEmail';
-import { emailScheduler } from './emailScheduler';
+// Test imports removed for production
 import { dataCollectionScheduler } from './dataCollectionScheduler';
-import { emailSendingScheduler } from './emailSendingScheduler';
+import { beehiivScheduler } from './beehiivScheduler';
 import { clearCache } from './utils/database';
 import { createBeehiivPost } from './utils/beehiiv';
 import { getCachedCityDataForToday } from './utils/cityData';
@@ -381,7 +380,7 @@ app.get('/weather', getWeatherHandler);
 app.get('/weather-email', getWeatherForEmailHandler);
 app.delete('/delete-user', deleteUserHandler);
 app.delete('/delete-city-data', deleteCityDataHandler);
-app.get('/test-email', testEmailHandler);
+// Production: Test endpoints removed
 
 // Manuel email test endpoints
 app.get('/manual-daily-email', async (req, res) => {
@@ -546,7 +545,8 @@ app.get('/scheduler-status', (req, res) => {
   });
 });
 
-// API Test endpoints
+// Production: API test endpoints removed
+/*
 app.get('/test-apis', async (req, res) => {
   try {
     console.log('🧪 Testing all APIs...');
@@ -617,6 +617,7 @@ app.get('/test-apis', async (req, res) => {
     });
   }
 });
+*/
 
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -633,18 +634,16 @@ app.listen(PORT, () => {
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/`);
   
-  // Email scheduler'ları başlat
+  // Schedule özeti göster
+  const { getScheduleSummary } = require('./config/scheduleConfig');
+  console.log(getScheduleSummary());
+  
+  // Scheduler'ları başlat
   console.log('📊 Starting data collection scheduler...');
   dataCollectionScheduler.start();
   
-  console.log('📧 Starting email sending scheduler...');
-  emailSendingScheduler.start();
-  
-
-  
-  // Eski email scheduler (test için)
-  console.log('🧪 Starting old email scheduler for testing...');
-  emailScheduler.start();
+  console.log('📧 Starting Beehiiv scheduler...');
+  beehiivScheduler.start();
 }); 
 
 // 404 handler (en sonda kalmalı)
