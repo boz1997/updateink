@@ -72,11 +72,15 @@ export const getSportsHandler = async (req: Request, res: Response) => {
   }
 
   try {
-    const today = new Date().toISOString().split('T')[0];
-    console.log(`⚽ Checking sports cache for ${city} on ${today}`);
+    const override = (req.query.date as string) || '';
+    const isValidYMD = /^\d{4}-\d{2}-\d{2}$/.test(override);
+    const dateYMD = isValidYMD 
+      ? override 
+      : new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    console.log(`⚽ Checking sports cache for ${city} on ${dateYMD}`);
 
     // 1. Cache'den veri kontrol et
-    const cachedResult = await checkDateData(city, today, 'sports');
+    const cachedResult = await checkDateData(city, dateYMD, 'sports');
     
     if (cachedResult && cachedResult.exists) {
       console.log(`✅ Cache hit for ${city} sports`);
@@ -128,15 +132,18 @@ export const getSportsHandler = async (req: Request, res: Response) => {
     const categorizedMatches = categorizeMatches(processedMatches);
 
     // 6. Cache'e kaydet
-    await saveToCache(city, today, 'sports', {
-      sports: processedSports,
-      upcomingMatches: categorizedMatches
-    });
+    if (isValidYMD) {
+      await saveToCache(city, dateYMD, 'sports', {
+        sports: processedSports,
+        upcomingMatches: categorizedMatches
+      });
+    }
 
     res.json({ 
       sports: processedSports, 
       upcomingMatches: categorizedMatches,
-      fromCache: false 
+      fromCache: false,
+      persisted: isValidYMD
     });
 
   } catch (error: any) {

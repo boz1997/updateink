@@ -12,7 +12,7 @@ import { dataCollectionScheduler } from './dataCollectionScheduler';
 import { beehiivScheduler } from './beehiivScheduler';
 import { clearCache } from './utils/database';
 import { createBeehiivPost } from './utils/beehiiv';
-import { getCachedCityDataForToday } from './utils/cityData';
+import { getCachedCityDataForToday, getCachedCityDataForDate } from './utils/cityData';
 import { buildBeehiivHtmlFromCityData, toEmailSafeHtml } from './utils/beehiivTemplate';
 import { renderMjml, mapToVM, toEmailSafeBody } from './utils/mjmlRenderer';
 import { getSupabaseClient } from './utils/database';
@@ -315,7 +315,21 @@ app.get('/beehiiv/send-city', async (req, res) => {
 app.get('/preview-beehiiv', async (req, res) => {
   try {
     const city = (req.query.city as string) || 'Boston';
-    const cached = await getCachedCityDataForToday(city);
+    const dateParam = (req.query.date as string) || '';
+    let cached;
+    if (dateParam) {
+      let dateYMD = dateParam;
+      if (dateParam.toLowerCase() === 'today') {
+        dateYMD = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      } else if (dateParam.toLowerCase() === 'tomorrow') {
+        const now = new Date();
+        const t = new Date(now.getTime() + 24*60*60*1000);
+        dateYMD = new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      }
+      cached = await getCachedCityDataForDate(city, dateYMD);
+    } else {
+      cached = await getCachedCityDataForToday(city);
+    }
     if (!cached) return res.status(404).send('No cache for today');
 
     const html = await renderMjml(cached);
@@ -447,6 +461,7 @@ app.get('/run-data-collection', async (req, res) => {
 app.get('/collect-city-data', async (req, res) => {
   try {
     const city = req.query.city as string;
+    const overrideDate = req.query.date as string | undefined; // YYYY-MM-DD
     
     if (!city) {
       return res.status(400).json({ 
@@ -455,15 +470,28 @@ app.get('/collect-city-data', async (req, res) => {
       });
     }
     
-    console.log(`🧪 Manual data collection for ${city} triggered via API`);
+    // Hedef tarihi belirle: date query varsa onu kullan, yoksa yarın (yerel saat)
+    let targetDateYMD: string;
+    if (overrideDate && /^\d{4}-\d{2}-\d{2}$/.test(overrideDate)) {
+      targetDateYMD = overrideDate;
+    } else {
+      const now = new Date();
+      const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      targetDateYMD = new Date(tomorrow.getTime() - tomorrow.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split('T')[0];
+    }
+    
+    console.log(`🧪 Manual data collection for ${city} (target ${targetDateYMD}) triggered via API`);
     
     // Tek şehir için veri topla
-    await dataCollectionScheduler.collectAndCacheDataForCity(city);
+    await dataCollectionScheduler.collectAndCacheDataForCity(city, targetDateYMD);
     
     res.json({ 
       success: true, 
-      message: `Data collection completed for ${city}`,
-      city: city
+      message: `Data collection completed for ${city} on ${targetDateYMD}`,
+      city: city,
+      date: targetDateYMD
     });
   } catch (error: any) {
     console.error(`❌ Manual data collection for ${req.query.city} failed:`, error);

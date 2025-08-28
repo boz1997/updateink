@@ -14,11 +14,15 @@ export const getNewsHandler = async (req: Request, res: Response) => {
   }
 
   try {
-    const today = new Date().toISOString().split('T')[0];
-    console.log(`📰 Checking news cache for ${city} on ${today}`);
+    const override = (req.query.date as string) || '';
+    const isValidYMD = /^\d{4}-\d{2}-\d{2}$/.test(override);
+    const dateYMD = isValidYMD 
+      ? override 
+      : new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    console.log(`📰 Checking news cache for ${city} on ${dateYMD}`);
 
     // 1. Cache'den veri kontrol et
-    const cachedResult = await checkDateData(city, today, 'news');
+    const cachedResult = await checkDateData(city, dateYMD, 'news');
     
     if (cachedResult && cachedResult.exists) {
       console.log(`✅ Cache hit for ${city} news`);
@@ -42,9 +46,12 @@ export const getNewsHandler = async (req: Request, res: Response) => {
     console.log(`✅ After AI filtering: ${processedNews.length} relevant news items`);
 
     // 4. Cache'e kaydet
-    await saveToCache(city, today, 'news', processedNews);
+    // Yalnızca geçerli bir tarih override'ı varsa persist et
+    if (isValidYMD) {
+      await saveToCache(city, dateYMD, 'news', processedNews);
+    }
 
-    res.json({ news: processedNews, fromCache: false });
+    res.json({ news: processedNews, fromCache: false, persisted: isValidYMD });
 
   } catch (error: any) {
     console.error('❌ News fetch error:', error);

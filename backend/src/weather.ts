@@ -14,11 +14,15 @@ export const getWeatherHandler = async (req: Request, res: Response) => {
   }
 
   try {
-    const today = new Date().toISOString().split('T')[0];
-    console.log(`🌤️ Checking weather cache for ${city} on ${today}`);
+    const override = (req.query.date as string) || '';
+    const isValidYMD = /^\d{4}-\d{2}-\d{2}$/.test(override);
+    const dateYMD = isValidYMD 
+      ? override 
+      : new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    console.log(`🌤️ Checking weather cache for ${city} on ${dateYMD}`);
 
     // 1. Cache'den veri kontrol et
-    const cachedResult = await checkDateData(city, today, 'weather');
+    const cachedResult = await checkDateData(city, dateYMD, 'weather');
     
     if (cachedResult && cachedResult.exists) {
       console.log(`✅ Cache hit for ${city} weather`);
@@ -31,9 +35,11 @@ export const getWeatherHandler = async (req: Request, res: Response) => {
     const weather = await fetchWeatherData(city, 'imperial');
 
     // 3. Cache'e kaydet
-    await saveToCache(city, today, 'weather', weather);
+    if (isValidYMD) {
+      await saveToCache(city, dateYMD, 'weather', weather);
+    }
 
-    res.json({ weather, fromCache: false });
+    res.json({ weather, fromCache: false, persisted: isValidYMD });
 
   } catch (error: any) {
     console.error('❌ Weather fetch error:', error);
@@ -55,11 +61,15 @@ export const getWeatherForEmailHandler = async (req: Request, res: Response) => 
   }
 
   try {
-    const today = new Date().toISOString().split('T')[0];
-    console.log(`🌤️ Getting email weather for ${city} on ${today}`);
+    const override = (req.query.date as string) || '';
+    const isValidYMD = /^\d{4}-\d{2}-\d{2}$/.test(override);
+    const dateYMD = isValidYMD 
+      ? override 
+      : new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    console.log(`🌤️ Getting email weather for ${city} on ${dateYMD}`);
 
     // 1. Cache'den veri kontrol et
-    const cachedResult = await checkDateData(city, today, 'weather');
+    const cachedResult = await checkDateData(city, dateYMD, 'weather');
     
     let weatherData;
     if (cachedResult && cachedResult.exists) {
@@ -69,32 +79,69 @@ export const getWeatherForEmailHandler = async (req: Request, res: Response) => 
       // 2. Cache'de yoksa API'den çek
       console.log(`🔄 Cache miss for ${city} weather, fetching from API`);
       weatherData = await fetchWeatherData(city, 'imperial');
-      await saveToCache(city, today, 'weather', weatherData);
+      if (isValidYMD) {
+        await saveToCache(city, dateYMD, 'weather', weatherData);
+      }
     }
 
     // 3. Email template için sadece gerekli bilgileri çıkar
     const current = weatherData.current;
     const forecast = weatherData.forecast;
-    
-    // Bugünün min/max sıcaklığını forecast'tan hesapla (ilk 8 saat)
-    const todayForecasts = forecast?.list?.slice(0, 8) || [];
-    let high = current?.main?.temp || 0;
-    let low = current?.main?.temp || 0;
-    
-    // Forecast verilerinden min/max bul
-    todayForecasts.forEach((item: any) => {
-      if (item?.main?.temp_max && item.main.temp_max > high) high = item.main.temp_max;
-      if (item?.main?.temp_min && item.main.temp_min < low) low = item.main.temp_min;
-      if (item?.main?.temp && item.main.temp > high) high = item.main.temp;
-      if (item?.main?.temp && item.main.temp < low) low = item.main.temp;
+
+    // Hedef tarih için forecast dilimleri (OpenWeather forecast listesi 3 saatlik dilimler içerir)
+    const list: any[] = forecast?.list || [];
+    const targetDateStr = dateYMD; // Gelen hedef tarihi doğrudan kullan
+    const localOffsetMs = new Date().getTimezoneOffset() * 60000;
+
+    const formatLocalYMD = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const segmentsForTarget = list.filter((item: any) => {
+      const dtUtcMs = (item?.dt || 0) * 1000;
+      const local = new Date(dtUtcMs - localOffsetMs);
+      const ymdLocal = formatLocalYMD(local);
+      return ymdLocal === targetDateStr;
     });
-    
+
+    // Eğer hedef gün için dilim bulamazsak, mevcut mantığa (ilk 8 dilim) geri düş
+    const slices = segmentsForTarget.length > 0 ? segmentsForTarget : list.slice(0, 8);
+
+    let high = Number.NEGATIVE_INFINITY;
+    let low = Number.POSITIVE_INFINITY;
+    let representativeWindMps = current?.wind?.speed || 0;
+    let representativeWindDeg = current?.wind?.deg || 0;
+    let representativeCondition = current?.weather?.[0]?.main || 'Unknown';
+
+    slices.forEach((item: any, idx: number) => {
+      const t = item?.main?.temp;
+      const tMax = item?.main?.temp_max;
+      const tMin = item?.main?.temp_min;
+      if (typeof tMax === 'number') high = Math.max(high, tMax);
+      if (typeof tMin === 'number') low = Math.min(low, tMin);
+      if (typeof t === 'number') {
+        if (!isFinite(high)) high = t;
+        if (!isFinite(low)) low = t;
+      }
+      // Gün ortasına yakın bir dilimi temsilci al (ör. 12:00 civarı ~ index 4)
+      if (idx === Math.floor(slices.length / 2)) {
+        representativeWindMps = item?.wind?.speed ?? representativeWindMps;
+        representativeWindDeg = item?.wind?.deg ?? representativeWindDeg;
+        representativeCondition = item?.weather?.[0]?.main || representativeCondition;
+      }
+    });
+
+    const windMph = Math.round((representativeWindMps || 0) * 2.237);
+
     const emailWeather = {
-      condition: current?.weather?.[0]?.main || 'Unknown',
-      high: Math.round(high),
-      low: Math.round(low),
-      wind: `${current?.wind?.deg ? getWindDirection(current.wind.deg) : 'N'} ${Math.round(current?.wind?.speed * 2.237 || 0)}-${Math.round((current?.wind?.speed * 2.237 || 0) + 5)} mph`,
-      date: new Date().toLocaleDateString('en-US', { 
+      condition: representativeCondition,
+      high: Math.round(isFinite(high) ? high : current?.main?.temp || 0),
+      low: Math.round(isFinite(low) ? low : current?.main?.temp || 0),
+      wind: `${representativeWindDeg ? getWindDirection(representativeWindDeg) : 'N'} ${windMph}-${windMph + 5} mph`,
+      date: new Date(targetDateStr + 'T00:00:00').toLocaleDateString('en-US', { 
         weekday: 'long', 
         month: 'long', 
         day: 'numeric' 

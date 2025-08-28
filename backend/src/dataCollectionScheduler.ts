@@ -68,11 +68,18 @@ export class DataCollectionScheduler {
 
     const startTime = Date.now();
     let uniqueCities: string[] = [];
+    // 19:00'da çalıştığımız için hedef tarih yarın olmalı
+    const now = new Date();
+    const targetDate = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const targetDateYMD = new Date(targetDate.getTime() - targetDate.getTimezoneOffset() * 60000)
+      .toISOString()
+      .split('T')[0];
 
     try {
       // 1. Tüm unique şehirleri al
       uniqueCities = await this.getUniqueCities();
       console.log(`🏙️ Found ${uniqueCities.length} unique cities to process`);
+      console.log(`🗓️ Target date for collection: ${targetDateYMD}`);
 
       // Admin notification - started
       await adminNotification.sendNotification({
@@ -96,7 +103,7 @@ export class DataCollectionScheduler {
       const cityPromises = uniqueCities.map(async (city) => {
         try {
           console.log(`📍 Processing data for ${city}...`);
-          await this.collectAndCacheDataForCity(city);
+          await this.collectAndCacheDataForCity(city, targetDateYMD);
           results.successful++;
           console.log(`✅ Data collected successfully for ${city}`);
           return { city, success: true };
@@ -169,26 +176,33 @@ export class DataCollectionScheduler {
 
     // Unique şehirler
     const uniqueCities = [...new Set(users.map((user: any) => user.city))];
-    return uniqueCities.filter((city: any) => city && typeof city === 'string' && city.trim().length > 0) as string[];
+    // Normalize
+    const normalized = uniqueCities
+      .filter((city: any) => city && typeof city === 'string' && city.trim().length > 0)
+      .map((c: string) => c.trim().toLowerCase().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
+    return [...new Set(normalized)] as string[];
   }
 
   // Tek şehir için veri topla ve cache'le
-  public async collectAndCacheDataForCity(city: string) {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+  public async collectAndCacheDataForCity(city: string, targetDateYMD?: string) {
+    const todayLocalYMD = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000)
+      .toISOString()
+      .split('T')[0];
+    const effectiveDate = targetDateYMD || todayLocalYMD; // YYYY-MM-DD format
 
-    // Tarih kontrolü - bugün için veri var mı?
-    const weatherCheck = await checkDateData(city, today, 'weather');
-    const newsCheck = await checkDateData(city, today, 'news');
-    const eventsCheck = await checkDateData(city, today, 'events');
-    const sportsCheck = await checkDateData(city, today, 'sports');
+    // Tarih kontrolü - hedef tarih için veri var mı?
+    const weatherCheck = await checkDateData(city, effectiveDate, 'weather');
+    const newsCheck = await checkDateData(city, effectiveDate, 'news');
+    const eventsCheck = await checkDateData(city, effectiveDate, 'events');
+    const sportsCheck = await checkDateData(city, effectiveDate, 'sports');
 
     // Eğer bugün için tüm veriler varsa, yeni veri çekme
     if (weatherCheck?.exists && newsCheck?.exists && eventsCheck?.exists && sportsCheck?.exists) {
-      console.log(`✅ Data already exists for ${city} on ${today}, skipping data collection`);
+      console.log(`✅ Data already exists for ${city} on ${effectiveDate}, skipping data collection`);
       return;
     }
 
-    console.log(`📊 Collecting fresh data for ${city} on ${today}...`);
+    console.log(`📊 Collecting fresh data for ${city} on ${effectiveDate}...`);
 
     try {
       // Paralel veri toplama - Azure URL kullan
@@ -197,11 +211,11 @@ export class DataCollectionScheduler {
         : 'http://localhost:4000';
         
       const [weatherResponse, briefResponse, newsResponse, eventsResponse, sportsResponse] = await Promise.all([
-        fetch(`${baseUrl}/weather-email?city=${encodeURIComponent(city)}`).then(r => r.json()),
-        fetch(`${baseUrl}/todays-brief?city=${encodeURIComponent(city)}&date=${today}`).then(r => r.json()),
-        fetch(`${baseUrl}/news?city=${encodeURIComponent(city)}`).then(r => r.json()),
-        fetch(`${baseUrl}/events?city=${encodeURIComponent(city)}`).then(r => r.json()),
-        fetch(`${baseUrl}/sports?city=${encodeURIComponent(city)}`).then(r => r.json())
+        fetch(`${baseUrl}/weather-email?city=${encodeURIComponent(city)}&date=${effectiveDate}`).then(r => r.json()),
+        fetch(`${baseUrl}/todays-brief?city=${encodeURIComponent(city)}&date=${effectiveDate}`).then(r => r.json()),
+        fetch(`${baseUrl}/news?city=${encodeURIComponent(city)}&date=${effectiveDate}`).then(r => r.json()),
+        fetch(`${baseUrl}/events?city=${encodeURIComponent(city)}&date=${effectiveDate}`).then(r => r.json()),
+        fetch(`${baseUrl}/sports?city=${encodeURIComponent(city)}&date=${effectiveDate}`).then(r => r.json())
       ]);
 
       // Veri yapısını oluştur
@@ -259,8 +273,8 @@ export class DataCollectionScheduler {
         cached_at: new Date().toISOString()
       };
 
-      // Cache'e kaydet
-      await this.saveCityDataToCache(cityData);
+      // Cache'e kaydet (hedef tarihle)
+      await this.saveCityDataToCache(cityData, effectiveDate);
 
     } catch (error: any) {
       throw new Error(`Data collection failed for ${city}: ${error.message}`);
@@ -268,9 +282,9 @@ export class DataCollectionScheduler {
   }
 
   // Veriyi city_data tablosuna kaydet
-  private async saveCityDataToCache(cityData: CityData) {
+  private async saveCityDataToCache(cityData: CityData, targetDateYMD: string) {
     const supabase = this.getSupabaseClient();
-    const today = new Date().toISOString().split('T')[0];
+    const dateToUse = targetDateYMD;
 
     // Her veri tipini ayrı kayıt olarak kaydet
     const dataTypes = [
@@ -286,7 +300,7 @@ export class DataCollectionScheduler {
       .from('city_data')
       .delete()
       .eq('city', cityData.city)
-      .eq('date', today);
+      .eq('date', dateToUse);
 
     // Her veri tipini ayrı kaydet
     for (const dataType of dataTypes) {
@@ -294,7 +308,7 @@ export class DataCollectionScheduler {
         .from('city_data')
         .insert({
           city: cityData.city,
-          date: today,
+          date: dateToUse,
           type: dataType.type,
           data: dataType.data
         });
@@ -312,7 +326,7 @@ export class DataCollectionScheduler {
         .from('city_data')
         .insert({
           city: cityData.city,
-          date: today,
+          date: dateToUse,
           type: 'brief',
           data: { brief: cityData.todaysBrief }
         });

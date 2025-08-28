@@ -26,6 +26,19 @@ export const getSupabaseClient = (): SupabaseClient => {
 };
 
 /**
+ * Şehir adını standart bir forma dönüştürür (Title Case)
+ */
+export const normalizeCityName = (rawCity: string): string => {
+  if (!rawCity) return rawCity;
+  return rawCity
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+/**
  * Tarih bazlı veri kontrolü yapar
  * @param city - Şehir adı
  * @param date - Tarih (YYYY-MM-DD formatında)
@@ -38,12 +51,13 @@ export const checkDateData = async (
   type: string
 ): Promise<{ data: any; exists: boolean } | null> => {
   const supabase = getSupabaseClient();
+  const cityNormalized = normalizeCityName(city);
   
   try {
     const { data, error } = await supabase
       .from('city_data')
       .select('data, created_at')
-      .eq('city', city)
+      .eq('city', cityNormalized)
       .eq('date', date)
       .eq('type', type)
       .single();
@@ -73,13 +87,14 @@ export const saveToCache = async (
   data: any
 ): Promise<boolean> => {
   const supabase = getSupabaseClient();
+  const cityNormalized = normalizeCityName(city);
   
   try {
     // Eski veriyi sil
     await supabase
       .from('city_data')
       .delete()
-      .eq('city', city)
+      .eq('city', cityNormalized)
       .eq('date', date)
       .eq('type', type);
     
@@ -87,7 +102,7 @@ export const saveToCache = async (
     const { error } = await supabase
       .from('city_data')
       .insert({
-        city,
+        city: cityNormalized,
         date,
         type,
         data
@@ -112,12 +127,13 @@ export const saveToCache = async (
  */
 export const clearCache = async (city?: string, type?: string): Promise<boolean> => {
   const supabase = getSupabaseClient();
+  const cityNormalized = city ? normalizeCityName(city) : undefined;
   
   try {
     let query = supabase.from('city_data').delete();
     
-    if (city) {
-      query = query.eq('city', city);
+    if (cityNormalized) {
+      query = query.eq('city', cityNormalized);
     }
     
     if (type) {
