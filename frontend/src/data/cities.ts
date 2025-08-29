@@ -5,6 +5,12 @@ export interface CityOption {
   aliases?: string[]; // Yazım hataları ve alternatif isimler için
 }
 
+// Backend API'den gelen şehir verisi için interface
+interface BackendCity {
+  value: string;
+  label: string;
+}
+
 // Bellek içi cache: API'den bir kez yüklensin
 let CITIES_CACHE: CityOption[] | null = null;
 
@@ -26,7 +32,7 @@ export const loadCitiesFromAPI = async (): Promise<CityOption[]> => {
     
     Object.entries(data.cities).forEach(([stateLabel, stateCities]) => {
       const stateCode = stateLabel.match(/\(([^)]+)\)$/)?.[1] || '';
-      (stateCities as any[]).forEach(city => {
+      (stateCities as BackendCity[]).forEach(city => {
         cities.push({
           value: city.value,
           label: `${city.label}, ${stateCode}`, // Eyalet kodu eklendi
