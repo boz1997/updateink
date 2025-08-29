@@ -48,7 +48,9 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'https://updateink-hmh7qw4uq-berk-ozs-projects.vercel.app',
       'https://updateink-nd9e6Lj0e-berk-ozs-projects.vercel.app',
       'https://updateink-bis9jph3c-berk-ozs-projects.vercel.app',
-      'https://updateink.vercel.app'
+      'https://updateink.vercel.app',
+      // Vercel preview ve production domain'leri için wildcard pattern
+      /^https:\/\/updateink.*\.vercel\.app$/
     ];
 
 console.log('🔧 CORS Allowed Origins:', allowedOrigins);
@@ -63,11 +65,28 @@ app.use(cors({
     console.log('🔧 CORS Request from origin:', origin);
     console.log('🔧 Allowed origins:', allowedOrigins);
     
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin) {
+      // Same-origin requests (postman, server-to-server)
+      console.log('✅ CORS: No origin (same-origin request)');
+      callback(null, true);
+      return;
+    }
+    
+    // String match için
+    const stringOrigins = allowedOrigins.filter(o => typeof o === 'string') as string[];
+    // Regex match için  
+    const regexOrigins = allowedOrigins.filter(o => o instanceof RegExp) as RegExp[];
+    
+    const isStringMatch = stringOrigins.includes(origin);
+    const isRegexMatch = regexOrigins.some(regex => regex.test(origin));
+    
+    if (isStringMatch || isRegexMatch) {
       console.log('✅ CORS: Origin allowed');
       callback(null, true);
     } else {
       console.log('❌ CORS: Origin blocked:', origin);
+      console.log('🔧 Available string origins:', stringOrigins);
+      console.log('🔧 Available regex patterns:', regexOrigins.map(r => r.toString()));
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -307,6 +326,10 @@ app.get('/beehiiv/create-from-cache', async (req, res) => {
 // Get active cities for dropdown
 app.get('/cities', async (req, res) => {
   try {
+    console.log('🏙️ Cities endpoint called');
+    console.log('🔧 Request origin:', req.headers.origin);
+    console.log('🔧 Request headers:', req.headers);
+    
     const supabase = getSupabaseClient();
     const { data: cities, error } = await supabase
       .from('city_pub')
@@ -316,11 +339,17 @@ app.get('/cities', async (req, res) => {
       .order('city_name', { ascending: true });
 
     if (error) {
+      console.error('❌ Supabase cities fetch error:', error);
       return res.status(500).json({ success: false, error: error.message });
     }
 
+    if (!cities || cities.length === 0) {
+      console.warn('⚠️ No cities found in database');
+      return res.json({ success: true, cities: {} });
+    }
+
     // Group by state for frontend dropdown
-    const groupedByState = cities?.reduce((acc: any, city) => {
+    const groupedByState = cities.reduce((acc: any, city) => {
       const stateKey = `${city.state_name} (${city.state_code})`;
       if (!acc[stateKey]) {
         acc[stateKey] = [];
@@ -330,10 +359,14 @@ app.get('/cities', async (req, res) => {
         label: city.city_name
       });
       return acc;
-    }, {}) || {};
+    }, {});
 
+    const totalCities = Object.values(groupedByState).flat().length;
+    console.log(`✅ Cities endpoint success: ${totalCities} cities in ${Object.keys(groupedByState).length} states`);
+    
     res.json({ success: true, cities: groupedByState });
   } catch (e: any) {
+    console.error('❌ Cities endpoint error:', e);
     res.status(500).json({ success: false, error: e.message });
   }
 });

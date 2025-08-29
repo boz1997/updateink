@@ -136,11 +136,18 @@ export default function Home() {
       console.log('📧 Request data:', { city: city.trim(), email: email.trim() });
       
       // Backend URL'i environment'a göre belirle
-      const BACKEND_URL = process.env.NODE_ENV === 'production' 
+      // Client-side'da NODE_ENV güvenilir değil, hostname kontrolü yapalım
+      const isProduction = typeof window !== 'undefined' && 
+        (window.location.hostname.includes('vercel.app') || 
+         window.location.hostname === 'updateink.vercel.app');
+      
+      const BACKEND_URL = isProduction
         ? 'https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net'
         : 'http://localhost:4000';
       
       console.log('🌐 Using backend URL:', BACKEND_URL);
+      console.log('🔧 Is Production:', isProduction);
+      console.log('🔧 Hostname:', window.location.hostname);
       
       const res = await fetch(`${BACKEND_URL}/subscribe`, {
         method: "POST",

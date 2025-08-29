@@ -36,14 +36,18 @@ export default function CitySelector({
       (o) => o && typeof o.value === 'string' && typeof o.label === 'string'
     );
 
-  // CSV'den şehirleri yükle
+  // API'den şehirleri yükle
   useEffect(() => {
     const loadCities = async () => {
       try {
         setIsLoading(true);
+        console.log('🔄 Loading cities from API...');
+        
         // Başlangıçta tam listeyi fetch etme; sadece seçili değeri bul
         const allCities = await getAllCities();
         setCities([]);
+        
+        console.log(`✅ Loaded ${allCities.length} cities from API`);
         
         // Eğer value varsa, şehri bul ve seç
         if (value) {
@@ -53,11 +57,14 @@ export default function CitySelector({
             setSelectedCity(city);
           } else {
             console.log('❌ City not found in list:', value);
+            console.log('🔍 Available cities:', allCities.slice(0, 5).map(c => c.value));
             setSelectedCity(null);
           }
         }
       } catch (error) {
-        console.error('Failed to load cities:', error);
+        console.error('❌ Failed to load cities:', error);
+        // Hata durumunda selected city'yi temizle
+        setSelectedCity(null);
       } finally {
         setIsLoading(false);
       }

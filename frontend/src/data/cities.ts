@@ -19,8 +19,25 @@ export const loadCitiesFromAPI = async (): Promise<CityOption[]> => {
   try {
     if (CITIES_CACHE) return CITIES_CACHE;
     
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    // Backend URL'i environment'a göre belirle
+    // Client-side'da NODE_ENV güvenilir değil, hostname kontrolü yapalım
+    const isProduction = typeof window !== 'undefined' && 
+      (window.location.hostname.includes('vercel.app') || 
+       window.location.hostname === 'updateink.vercel.app');
+    
+    const apiUrl = isProduction
+      ? 'https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net'
+      : 'http://localhost:4000';
+    
+    console.log('🌐 Cities API URL:', apiUrl);
+    console.log('🔧 Is Production:', isProduction);
+    console.log('🔧 Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server');
     const response = await fetch(`${apiUrl}/cities`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     
     if (!data.success || !data.cities) {
@@ -47,7 +64,8 @@ export const loadCitiesFromAPI = async (): Promise<CityOption[]> => {
     console.log(`✅ Loaded ${cities.length} cities from API`);
     return cities;
   } catch (error) {
-    console.error('Failed to load cities from API:', error);
+    console.error('❌ Failed to load cities from API:', error);
+    console.error('🔄 Using fallback cities...');
     // Hata durumunda fallback olarak temel şehirler
     CITIES_CACHE = getFallbackCities();
     return CITIES_CACHE;
@@ -58,9 +76,21 @@ export const loadCitiesFromAPI = async (): Promise<CityOption[]> => {
 const getFallbackCities = (): CityOption[] => [
   {
     value: "fort-wayne",
-    label: "Fort Wayne, FL",
-    state: "FL",
-    aliases: ["fort wayne", "florida"]
+    label: "Fort Wayne, FL", 
+    state: "fL",
+    aliases: ["fort wayne", "Florida"]
+  },
+  {
+    value: "indianapolis",
+    label: "Indianapolis, IN",
+    state: "IN", 
+    aliases: ["indianapolis", "indy", "indiana"]
+  },
+  {
+    value: "fishers",
+    label: "Fishers, IN",
+    state: "IN",
+    aliases: ["fishers", "indiana"]
   }
 ];
 
