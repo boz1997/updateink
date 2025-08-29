@@ -569,35 +569,6 @@ app.get('/collect-city-data', async (req, res) => {
   }
 });
 
-// Manuel email sending job  
-app.get('/run-email-sending', async (req, res) => {
-  try {
-    console.log('🧪 Manual email sending triggered via API');
-    
-    if (emailSendingScheduler.isSendingRunning()) {
-      return res.json({ 
-        success: false, 
-        message: 'Email sending already running' 
-      });
-    }
-    
-    // Background'da çalıştır
-    emailSendingScheduler.runEmailSendingJob().catch(error => {
-      console.error('❌ Background email sending failed:', error);
-    });
-    
-    res.json({ 
-      success: true, 
-      message: 'Email sending job started in background' 
-    });
-  } catch (error: any) {
-    console.error('❌ Manual email sending failed:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-
-
 // Cache temizleme endpoint'i
 app.get('/clear-cache', async (req, res) => {
   try {
@@ -631,9 +602,6 @@ app.get('/scheduler-status', (req, res) => {
   res.json({
     dataCollection: {
       running: dataCollectionScheduler.isCollectionRunning()
-    },
-    emailSending: {
-      running: emailSendingScheduler.isSendingRunning()
     },
     timestamp: new Date().toISOString()
   });
