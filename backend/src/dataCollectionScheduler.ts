@@ -175,11 +175,11 @@ export class DataCollectionScheduler {
     }
 
     // Unique şehirler
-    const uniqueCities = [...new Set((users || []).map((user: { city: string }) => user.city))];
+    const uniqueCities = [...new Set((users || []).map((user: { city: string }) => user.city))] as string[];
     // Normalize
-    const normalized = uniqueCities
-      .filter((city: string) => city && typeof city === 'string' && city.trim().length > 0)
-      .map((c: string) => c.trim().toLowerCase().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
+    const normalized = (uniqueCities as string[])
+      .filter((city) => typeof city === 'string' && city.trim().length > 0)
+      .map((c) => c.trim().toLowerCase().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
     return [...new Set(normalized)];
   }
 

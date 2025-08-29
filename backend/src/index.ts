@@ -271,10 +271,10 @@ app.get('/beehiiv/create-from-cache', async (req, res) => {
     }
 
     // 2) Build HTML content using the existing professional template
-    const htmlContent = buildBeehiivHtmlFromCityData(cachedData, emailScheduler.generateEmailHTML);
+    const htmlContent = await renderMjml(cachedData);
     
     // 3) Convert to email-safe format (CSS inline + body content only)
-    const emailSafe = toEmailSafeHtml(htmlContent);
+    const emailSafe = toEmailSafeBody(htmlContent);
 
     // 4) Create Beehiiv post
     const result = await createBeehiivPost({
@@ -461,40 +461,6 @@ app.get('/weather-email', getWeatherForEmailHandler);
 app.delete('/delete-user', deleteUserHandler);
 app.delete('/delete-city-data', deleteCityDataHandler);
 // Production: Test endpoints removed
-
-// Manuel email test endpoints
-app.get('/manual-daily-email', async (req, res) => {
-  try {
-    console.log('🧪 Manual daily email triggered via API');
-    await emailScheduler.runDailyEmailJob();
-    res.json({ success: true, message: 'Daily email job completed' });
-  } catch (error: any) {
-    console.error('❌ Manual daily email failed:', error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-app.get('/test-scheduler-email', async (req, res) => {
-  try {
-    const { email, city } = req.query;
-    if (!email || !city) {
-      return res.status(400).json({ error: 'Email and city parameters required' });
-    }
-    
-    const result = await emailScheduler.sendTestEmail(email as string, city as string);
-    
-    if (result.success && result.htmlContent) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.send(result.htmlContent);
-    } else {
-      res.status(500).json(result);
-    }
-  } catch (error: any) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-// NEW SYSTEM ENDPOINTS
 
 // Manuel data collection job
 app.get('/run-data-collection', async (req, res) => {
