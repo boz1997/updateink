@@ -45,11 +45,19 @@ export default function Home() {
     }
   ];
 
-  // IP detection
+  // IP detection with timeout
   useEffect(() => {
-    fetch('https://ipapi.co/json/')
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+      console.log('⏱️ IP detection timed out after 5 seconds');
+      setIpLoading(false);
+    }, 5000);
+
+    fetch('https://ipapi.co/json/', { signal: controller.signal })
       .then((res) => res.json())
       .then(async (data) => {
+        clearTimeout(timeoutId);
         if (data.city) {
           // Match IP city with API list
           try {
@@ -74,7 +82,12 @@ export default function Home() {
         setIpLoading(false);
       })
       .catch((error) => {
-        console.error('IP detection failed:', error);
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          console.log('⏱️ IP detection was aborted due to timeout');
+        } else {
+          console.error('IP detection failed:', error);
+        }
         setIpLoading(false);
       });
   }, []);
