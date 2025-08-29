@@ -20,18 +20,10 @@ export const loadCitiesFromAPI = async (): Promise<CityOption[]> => {
     if (CITIES_CACHE) return CITIES_CACHE;
     
     // Backend URL'i environment'a göre belirle
-    // Client-side'da NODE_ENV güvenilir değil, hostname kontrolü yapalım
-    const isProduction = typeof window !== 'undefined' && 
-      (window.location.hostname.includes('vercel.app') || 
-       window.location.hostname === 'updateink.vercel.app');
-    
-    const apiUrl = isProduction
-      ? 'https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net'
-      : 'http://localhost:4000';
+    // GEÇICI: Her zaman Azure backend kullan (localhost sorununu çözmek için)
+    const apiUrl = 'https://regor-backend-app-fgcxhnf8fcetgddn.westeurope-01.azurewebsites.net';
     
     console.log('🌐 Cities API URL:', apiUrl);
-    console.log('🔧 Is Production:', isProduction);
-    console.log('🔧 Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server');
     const response = await fetch(`${apiUrl}/cities`);
     
     if (!response.ok) {
