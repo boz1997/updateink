@@ -133,6 +133,11 @@ export async function createBeehiivPost(params: CreateBeehiivPostParams): Promis
       };
     }
 
+    // Scheduled gönderim desteği: Beehiiv 'scheduled' status kabul etmiyor, 'confirmed' + 'scheduled_at' kullan
+    if (params.scheduledAt) {
+      body.scheduled_at = params.scheduledAt; // ISO 8601 UTC
+    }
+
     const response = await axios.post(url, body, {
       headers: {
         Authorization: `Bearer ${apiKey}`,

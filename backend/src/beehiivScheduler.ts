@@ -76,20 +76,22 @@ export class BeehiivScheduler {
           });
           const subject = `${cityInfo.city_name} Update — ${today}`;
 
-          // Beehiiv'e gönder
+          // Beehiiv'e gönder (120 dk sonrasına planla)
+          const scheduledAtIso = new Date(Date.now() + 120 * 60 * 1000).toISOString();
           const result = await createBeehiivPost({
             title: subject,
             html: emailBody,
             citySlug: cityInfo.city_slug,
             status: 'confirmed',
+            scheduledAt: scheduledAtIso,
             hideFromFeed: true,
             emailSubject: subject
           });
 
           if (result.success) {
-            console.log(`✅ ${cityInfo.city_name} newsletter sent successfully`);
+            console.log(`✅ ${cityInfo.city_name} newsletter scheduled successfully for ${scheduledAtIso}`);
           } else {
-            console.log(`❌ Failed to send ${cityInfo.city_name} newsletter:`, result.error);
+            console.log(`❌ Failed to schedule ${cityInfo.city_name} newsletter:`, result.error);
           }
 
           // Rate limiting için 2 saniye bekle
@@ -100,10 +102,10 @@ export class BeehiivScheduler {
         }
       }
 
-      console.log('✅ Daily Beehiiv sending completed');
+      console.log('✅ Daily Beehiiv scheduling completed');
 
     } catch (error) {
-      console.error('❌ Error in daily Beehiiv sending:', error);
+      console.error('❌ Error in daily Beehiiv scheduling:', error);
     } finally {
       this.isRunning = false;
     }

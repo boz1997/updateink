@@ -141,6 +141,72 @@ app.post('/beehiiv/test-post', async (req, res) => {
   }
 });
 
+// Schedule Beehiiv post from cached content with a delay
+// Example:
+// GET /beehiiv/schedule-from-cache?city=Fishers&subject=Fishers%20Update&date=tomorrow&delayMinutes=120
+app.get('/beehiiv/schedule-from-cache', async (req, res) => {
+  try {
+    const city = (req.query.city as string) || '';
+    const subject = (req.query.subject as string) || '';
+    const dateParam = (req.query.date as string) || 'today';
+    const delayMinutes = parseInt((req.query.delayMinutes as string) || '120', 10);
+
+    if (!city || !subject) {
+      return res.status(400).json({ success: false, error: 'city and subject are required' });
+    }
+
+    // Resolve date
+    let dateYMD = dateParam;
+    if (dateParam.toLowerCase() === 'today') {
+      dateYMD = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    } else if (dateParam.toLowerCase() === 'tomorrow') {
+      const now = new Date();
+      const t = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      dateYMD = new Date(t.getTime() - t.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    }
+
+    // Fetch cached data for that date
+    const cached = await getCachedCityDataForDate(city, dateYMD);
+    if (!cached) {
+      return res.status(404).json({ success: false, error: `No cache for ${city} on ${dateYMD}` });
+    }
+
+    // Render MJML → body content
+    const compiledHtml = await renderMjml(cached);
+    const bodyContent = toEmailSafeBody(compiledHtml);
+
+    // Schedule time (UTC ISO)
+    const scheduledAtIso = new Date(Date.now() + Math.max(1, delayMinutes) * 60 * 1000).toISOString();
+
+    const citySlug = city.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+    const result = await createBeehiivPost({
+      title: subject,
+      html: bodyContent,
+      citySlug,
+      status: 'confirmed',
+      scheduledAt: scheduledAtIso,
+      hideFromFeed: true,
+      emailSubject: subject
+    });
+
+    if (!result.success) {
+      return res.status(500).json({ success: false, error: result.error });
+    }
+
+    res.json({
+      success: true,
+      message: 'Beehiiv post scheduled successfully',
+      postId: result.postId,
+      scheduledAt: scheduledAtIso,
+      city,
+      date: dateYMD
+    });
+  } catch (e: any) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // GET endpoint for testing Beehiiv post creation via browser
 app.get('/beehiiv/test-post', async (req, res) => {
   try {
