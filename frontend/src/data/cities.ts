@@ -57,22 +57,10 @@ export const loadCitiesFromAPI = async (): Promise<CityOption[]> => {
 // Fallback şehirler (API yüklenemezse)
 const getFallbackCities = (): CityOption[] => [
   {
-    value: "new-york",
-    label: "New York, NY",
-    state: "NY",
-    aliases: ["nyc", "new york city", "manhattan"]
-  },
-  {
-    value: "fishers",
-    label: "Fishers, IN",
-    state: "IN",
-    aliases: ["fishers", "indiana"]
-  },
-  {
-    value: "chicago",
-    label: "Chicago, IL",
-    state: "IL",
-    aliases: ["chicago", "windy city"]
+    value: "fort-wayne",
+    label: "Fort Wayne, FL",
+    state: "FL",
+    aliases: ["fort wayne", "florida"]
   }
 ];
 
