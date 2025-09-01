@@ -76,8 +76,9 @@ export class BeehiivScheduler {
           });
           const subject = `${cityInfo.city_name} Update — ${today}`;
 
-          // Beehiiv'e gönder (120 dk sonrasına planla)
-          const scheduledAtIso = new Date(Date.now() + 120 * 60 * 1000).toISOString();
+          // Beehiiv'e gönder (15:00 TR'de gönderilmek üzere planla)
+          // 00:10'da post oluştur, 15:00'da gönder = yaklaşık 14 saat 50 dakika sonra
+          const scheduledAtIso = new Date(Date.now() + (14 * 60 + 50) * 60 * 1000).toISOString();
           const result = await createBeehiivPost({
             title: subject,
             html: emailBody,
