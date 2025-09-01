@@ -38,7 +38,7 @@ export const MJML_TEMPLATE = `
       .s-name{font-weight:700;font-size:13px;color:#111827}
       .s-meta{font-size:12px;color:#6b7280} 
       .s-link{font-size:12px;color:#2563eb;text-decoration:none}
-      .s-card{border:0px solid #e5e7eb;border-radius:12px;background:#fff} 
+      .s-card{border:0px solid #e5e7eb;border-radius:12px;background-color="#f3f4f6"} 
       .s-pad{padding:0} 
       
       /* Beehiiv header'ını gizle */
@@ -63,7 +63,7 @@ export const MJML_TEMPLATE = `
     <mj-wrapper padding="0">
 
       <!-- Top bar: logo + socials -->
-      <mj-section>
+      <mj-section background-color="#f3f4f6">
         <mj-column padding="0">
           <mj-table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
             <tr>
@@ -127,7 +127,7 @@ export const MJML_TEMPLATE = `
 
 
       <!-- Today in CITY -->
-      <mj-section background-color="#ffffff" padding="25px 20px">
+      <mj-section background-color="#f3f4f6" padding="25px 20px">
       <mj-column>
         <mj-text align="center" padding="0">
           <img src="https://i.ibb.co/ZzD2pXyb/location-Pin.png" alt="Location Pin" width="40" height="20" style="vertical-align: middle; margin-right: 8px;" />
@@ -137,7 +137,7 @@ export const MJML_TEMPLATE = `
     </mj-section>
 
     <!-- Powered by -->
-    <mj-section background-color="#ffffff" padding="8px 16px 16px">
+    <mj-section background-color="#f3f4f6" padding="8px 16px 16px">
       <mj-column>
         <mj-text align="center" padding="0">
           <span
@@ -160,7 +160,7 @@ export const MJML_TEMPLATE = `
 
       <!-- ===== Sponsors ===== -->
       {{#each sponsors}}
-        <mj-section background-color="#ffffff" padding="0px 12px">
+        <mj-section background-color="#f3f4f6" padding="0px 12px">
           <mj-group>
             {{#each this}}
               <mj-column width="33.33%">
@@ -190,13 +190,13 @@ export const MJML_TEMPLATE = `
 
 
       <!-- ===== Today's Weather ===== -->
-      <mj-section padding="10px 0 " background-color="#ffffff" width="100%">
+      <mj-section padding="10px 0 " background-color="#f3f4f6" width="100%">
         <mj-column width="100%">
             <mj-image src="https://i.ibb.co/gFyxNy2P/Header-5.png" alt="Today’s Weather" css-class="section-header" fluid-on-mobile="true"/>
         </mj-column>
       </mj-section>
 
-      <mj-section background-color="#ffffff" css-class="card" padding="0px" width="100%">
+      <mj-section background-color="#f3f4f6" css-class="card" padding="0px" width="100%">
         <mj-column>
           <mj-table css-class="list-table" width="100%" role="presentation" cellpadding="0" cellspacing="0">
             <tr>
@@ -217,13 +217,13 @@ export const MJML_TEMPLATE = `
       </mj-section>
 
       <!-- ===== Today’s Brief ===== -->
-      <mj-section padding="0px"  background-color="#ffffff">
+      <mj-section padding="0px"  background-color="#f3f4f6">
         <mj-column width="100%">
             <mj-image src="https://i.ibb.co/r2KWmJJ3/Header-1.png" alt="Today’s Brief" css-class="section-header" fluid-on-mobile="true" />
         </mj-column>
       </mj-section>
 
-      <mj-section background-color="#ffffff" css-class="card" padding="0px" width="100%">
+      <mj-section background-color="#f3f4f6" css-class="card" padding="0px" width="100%">
         <mj-column>
           <mj-table css-class="list-table" width="100%" role="presentation" cellpadding="0" cellspacing="0" style="padding:0px">
             {{#each todaysBrief}}
@@ -240,7 +240,7 @@ export const MJML_TEMPLATE = `
 
      <!-- ===== Membership Message / CTA ===== become a member -->
       <!-- COMMENTED OUT - İleride açılacak servis
-      <mj-section background-color="#ffffff" border-radius="12px" padding="0" css-class="card">
+      <mj-section background-color="#f3f4f6" border-radius="12px" padding="0" css-class="card">
         <mj-column>
           <mj-text align="center" font-size="24px" font-weight="700" padding="16px 16px 0">
             A message from the {{city}} <span class="brand">update</span>.
@@ -266,13 +266,13 @@ export const MJML_TEMPLATE = `
 
 
       <!-- ===== News ===== -->
-      <mj-section padding="16px 0 0" background-color="#ffffff" width="100%">
+      <mj-section padding="16px 0 0" background-color="#f3f4f6" width="100%">
         <mj-column width="100%">
             <mj-image src="https://i.ibb.co/0jF7JMV3/Header-2.png" alt="News" css-class="section-header" fluid-on-mobile="true"/>
         </mj-column>
       </mj-section>
 
-      <mj-section background-color="#ffffff"  padding="0px 0px 0px" width="100%">
+      <mj-section background-color="#f3f4f6"  padding="0px 0px 0px" width="100%">
         <mj-column>
           {{#each news}}
             <mj-text>
@@ -287,13 +287,13 @@ export const MJML_TEMPLATE = `
       </mj-section>
 
       <!-- ===== Events ===== -->
-      <mj-section padding="16px 8px 0"  background-color="#ffffff">
+      <mj-section padding="16px 8px 0"  background-color="#f3f4f6">
         <mj-column width="100%">
             <mj-image src="https://i.ibb.co/gbxCx6N2/Header-3.png" alt="Events" css-class="section-header" fluid-on-mobile="true" />
         </mj-column>
       </mj-section>
 
-      <mj-section background-color="#ffffff" css-class="event-card" padding="0px 0px 0px" width="90%">
+      <mj-section background-color="#f3f4f6" css-class="event-card" padding="0px 0px 0px" width="90%">
         <mj-column>
           <mj-table css-class="list-table" width="90%" role="presentation" cellpadding="0" cellspacing="0">
             {{#each events}}
@@ -312,13 +312,13 @@ export const MJML_TEMPLATE = `
       </mj-section>
 
       <!-- ===== Sports ===== -->
-      <mj-section padding="16px 8px 0"  background-color="#ffffff">
+      <mj-section padding="16px 8px 0"  background-color="#f3f4f6">
         <mj-column width="100%">
             <mj-image src="https://i.ibb.co/qY7FGNLd/Header-4.png" alt="Sports" css-class="section-header" fluid-on-mobile="true" />
         </mj-column>
       </mj-section>
 
-      <mj-section background-color="#ffffff" css-class="event-card" padding="0px 0px 0px" width="100%">
+      <mj-section background-color="#f3f4f6" css-class="event-card" padding="0px 0px 0px" width="100%">
         <mj-column>
           {{#if sports.summary}}
             <mj-text css-class="sports-note" style="font-size:16px;">{{{sports.summary}}}</mj-text>
