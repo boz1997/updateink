@@ -296,7 +296,7 @@ export const MJML_TEMPLATE = `
         </mj-column>
       </mj-section>
 
-      <mj-section background-color="#f3f4f6" css-class="event-card" padding="0px 0px 0px" width="90%">
+      <mj-section background-color="#f3f4f6" padding="0px 0px 0px" width="90%">
         <mj-column>
           <mj-table css-class="list-table" width="90%" role="presentation" cellpadding="0" cellspacing="0">
             {{#each events}}
@@ -321,7 +321,7 @@ export const MJML_TEMPLATE = `
         </mj-column>
       </mj-section>
 
-      <mj-section background-color="#f3f4f6" css-class="event-card" padding="0px 0px 0px" width="100%">
+      <mj-section background-color="#f3f4f6" padding="0px 0px 0px" width="100%">
         <mj-column>
           {{#if sports.summary}}
             <mj-text css-class="sports-note" style="font-size:16px;">{{{sports.summary}}}</mj-text>
