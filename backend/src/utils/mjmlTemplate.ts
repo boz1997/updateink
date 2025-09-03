@@ -68,23 +68,26 @@ export const MJML_TEMPLATE = `
           <mj-table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
             <tr>
               <td style="vertical-align:middle; width:50%;">
-                <img src="https://i.ibb.co/fVnRyL1g/header-Logo.png" alt="Update Ink"
+                <img src="https://i.imgur.com/19KTAbC.png" alt="Update Ink"
                     width="64" style="display:block; line-height:1; border:0; outline:none; text-decoration:none;" />
               </td>
 
               <td align="right" style="vertical-align:middle; width:50%;">
                 <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
-                  <img src="https://i.ibb.co/SDxwQThz/facebook-Icon.png" width="24" height="24" alt="Facebook"
+                  <img src="https://i.imgur.com/yNGG390.png" width="24" height="24" alt="Facebook"
                       style="display:inline-block; border-radius:50%; border:0; outline:none; margin-left:6px;" />
                 </a>
                 <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
-                  <img src="https://i.ibb.co/V0Q10sGW/instagram-Icon.png" width="24" height="24" alt="Instagram"
+                  <img src="https://i.imgur.com/wJwqTPS.png" width="24" height="24" alt="Instagram"
                       style="display:inline-block; border:0; outline:none; margin-left:6px;" />
                 </a>
+                <!-- Twitter/X icon hidden -->
+                <!--
                 <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
-                  <img src="https://i.ibb.co/hFR0Qwkx/twitter-Icon.png" width="24" height="24" alt="X"
+                  <img src="https://i.imgur.com/4CjmGTy.png" width="24" height="24" alt="X"
                       style="display:inline-block; border:0; outline:none; margin-left:6px;" />
                 </a>
+                -->
               </td>
             </tr>
           </mj-table>
@@ -96,7 +99,7 @@ export const MJML_TEMPLATE = `
       <mj-hero
         mode="fixed-height"
         height="220px"
-        background-url="https://i.ibb.co/4ZV0v9kB/bg-Hero-Banner-2.png"
+        background-url="https://i.imgur.com/vxin6BM.png"
         background-position="center center"
         padding="0"
       >
@@ -130,7 +133,7 @@ export const MJML_TEMPLATE = `
       <mj-section background-color="#f3f4f6" padding="25px 20px">
       <mj-column>
         <mj-text align="center" padding="0">
-          <img src="https://i.ibb.co/ZzD2pXyb/location-Pin.png" alt="Location Pin" width="40" height="20" style="vertical-align: middle; margin-right: 8px;" />
+          <img src="https://i.imgur.com/YHlC0Ps.png" alt="Location Pin" width="40" height="20" style="vertical-align: middle; margin-right: 8px;" />
           <span class="city-title">Today in {{city}}</span>
         </mj-text>
       </mj-column>
@@ -192,7 +195,7 @@ export const MJML_TEMPLATE = `
       <!-- ===== Today's Weather ===== -->
       <mj-section padding="10px 0 " background-color="#f3f4f6" width="100%">
         <mj-column width="100%">
-            <mj-image src="https://i.ibb.co/gFyxNy2P/Header-5.png" alt="Today’s Weather" css-class="section-header" fluid-on-mobile="true"/>
+            <mj-image src="https://i.imgur.com/l7LPUFi.png" alt="Today's Weather" css-class="section-header" fluid-on-mobile="true"/>
         </mj-column>
       </mj-section>
 
@@ -219,7 +222,7 @@ export const MJML_TEMPLATE = `
       <!-- ===== Today’s Brief ===== -->
       <mj-section padding="0px"  background-color="#f3f4f6">
         <mj-column width="100%">
-            <mj-image src="https://i.ibb.co/r2KWmJJ3/Header-1.png" alt="Today’s Brief" css-class="section-header" fluid-on-mobile="true" />
+            <mj-image src="https://i.imgur.com/rksPWUf.png" alt="Today's Brief" css-class="section-header" fluid-on-mobile="true" />
         </mj-column>
       </mj-section>
 
@@ -229,7 +232,7 @@ export const MJML_TEMPLATE = `
             {{#each todaysBrief}}
             <tr class="evt-row" >
               <td style="width:24px;padding:10px 0 12px 10px;">
-                  <img src="https://i.ibb.co/cXNsWnVV/right-arrows-1.png" alt="" width="24" />
+                  <img src="https://i.imgur.com/PLjv0d8.png" alt="" width="24" />
               </td>
               <td style="font-size:16px;padding:10px 0 12px 10px;">{{this}}</td>
             </tr>
@@ -268,7 +271,7 @@ export const MJML_TEMPLATE = `
       <!-- ===== News ===== -->
       <mj-section padding="16px 0 0" background-color="#f3f4f6" width="100%">
         <mj-column width="100%">
-            <mj-image src="https://i.ibb.co/0jF7JMV3/Header-2.png" alt="News" css-class="section-header" fluid-on-mobile="true"/>
+            <mj-image src="https://i.imgur.com/cF1bMhy.png" alt="News" css-class="section-header" fluid-on-mobile="true"/>
         </mj-column>
       </mj-section>
 
@@ -289,7 +292,7 @@ export const MJML_TEMPLATE = `
       <!-- ===== Events ===== -->
       <mj-section padding="16px 8px 0"  background-color="#f3f4f6">
         <mj-column width="100%">
-            <mj-image src="https://i.ibb.co/gbxCx6N2/Header-3.png" alt="Events" css-class="section-header" fluid-on-mobile="true" />
+            <mj-image src="https://i.imgur.com/D3b9gHB.png" alt="Events" css-class="section-header" fluid-on-mobile="true" />
         </mj-column>
       </mj-section>
 
@@ -314,7 +317,7 @@ export const MJML_TEMPLATE = `
       <!-- ===== Sports ===== -->
       <mj-section padding="16px 8px 0"  background-color="#f3f4f6">
         <mj-column width="100%">
-            <mj-image src="https://i.ibb.co/qY7FGNLd/Header-4.png" alt="Sports" css-class="section-header" fluid-on-mobile="true" />
+            <mj-image src="https://i.imgur.com/NWlRSyr.png" alt="Sports" css-class="section-header" fluid-on-mobile="true" />
         </mj-column>
       </mj-section>
 
@@ -349,24 +352,27 @@ export const MJML_TEMPLATE = `
       <!-- Footer -->
       <mj-section css-class="footer" background-color="#041220" padding="24px 16px">
         <mj-column>
-          <mj-image src="https://i.ibb.co/y9Bjn3y/logo-white.png" alt="Update Ink" width="42px" align="center" />
+          <mj-image src="https://i.imgur.com/SqgKs9t.png" alt="Update Ink" width="42px" align="center" />
           <mj-text align="center" color="#cbd5e1" padding="10px 0 0">Follow us for updates :</mj-text>
                    <mj-table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
             <tr>
 
               <td align="middle" style="vertical-align:middle; width:50%;">
                 <a href="#" style="display:inline-block; text-decoration:none;padding-left:0px">
-                  <img src="https://i.ibb.co/SDxwQThz/facebook-Icon.png" width="24" height="24" alt="Facebook"
+                  <img src="https://i.imgur.com/yNGG390.png" width="24" height="24" alt="Facebook"
                       style="display:inline-block; border-radius:50%; border:0; outline:none; margin-left:6px;" />
                 </a>
                 <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
-                  <img src="https://i.ibb.co/V0Q10sGW/instagram-Icon.png" width="24" height="24" alt="Instagram"
+                  <img src="https://i.imgur.com/wJwqTPS.png" width="24" height="24" alt="Instagram"
                       style="display:inline-block; border:0; outline:none; margin-left:6px;" />
                 </a>
+                <!-- Twitter/X icon hidden -->
+                <!--
                 <a href="#" style="display:inline-block; text-decoration:none;padding-left:10px">
                   <img src="https://i.ibb.co/3xsnRJy/twitter-x-white.png" width="24" height="24" alt="X"
                       style="display:inline-block; border:0; outline:none; margin-left:6px;" />
                 </a>
+                -->
               </td>
             </tr>
           </mj-table>
