@@ -68,7 +68,7 @@ export class BeehiivScheduler {
           const htmlContent = await renderMjml(cachedData);
           const emailBody = toEmailSafeBody(htmlContent);
 
-          // Subject oluştur - +1 gün (yarın için email gönderiyoruz)
+          // Subject oluştur - +1 gün (görsel için, gönderim aynı gün)
           const tomorrow = new Date();
           tomorrow.setDate(tomorrow.getDate() + 1);
           const tomorrowFormatted = tomorrow.toLocaleDateString('en-US', {
@@ -78,9 +78,9 @@ export class BeehiivScheduler {
           });
           const subject = `${cityInfo.city_name} Update — ${tomorrowFormatted}`;
 
-          // Beehiiv'e gönder (yarın 15:00 TR'de gönderilmek üzere planla)
-          // 00:10'da post oluştur, ertesi gün 15:00'da gönder = yaklaşık 38 saat 50 dakika sonra
-          const scheduledAtIso = new Date(Date.now() + (38 * 60 + 50) * 60 * 1000).toISOString();
+          // Beehiiv'e gönder (15:00 TR'de gönderilmek üzere planla - GÖNDERİM AKIŞI DEĞİŞMEDİ)
+          // 00:10'da post oluştur, 15:00'da gönder = yaklaşık 14 saat 50 dakika sonra
+          const scheduledAtIso = new Date(Date.now() + (14 * 60 + 50) * 60 * 1000).toISOString();
           const result = await createBeehiivPost({
             title: subject,
             html: emailBody,

@@ -18,10 +18,12 @@ export async function getCachedCityDataForToday(city: string): Promise<CachedCit
   const supabase = getSupabaseClient();
   const today = new Date().toISOString().split('T')[0];
 
-  // Initialize structure
+  // Initialize structure - tarih +1 gün (görsel için)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
   const result: CachedCityData = {
     city,
-    date: new Date().toLocaleDateString('en-US', {
+    date: tomorrow.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric'
