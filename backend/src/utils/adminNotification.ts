@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 // Environment config
 dotenv.config();
 
-const ADMIN_EMAIL = 'ozdorukberk@gmail.com';
+const ADMIN_EMAIL = 'theupdateink@gmail.com';
 
 interface NotificationData {
   type: 'data_collection' | 'email_sending';
