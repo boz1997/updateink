@@ -7,6 +7,9 @@ import { getNewsHandler, getTodaysBriefHandler } from './news';
 import { getEventsHandler } from './events';
 import { getSportsHandler } from './sports';
 import { getWeatherHandler, getWeatherForEmailHandler } from './weather';
+import { testEmailHandler } from './testEmail';
+import { getCachedCityDataForToday } from './utils/cityData';
+import { renderMjml } from './utils/mjmlRenderer';
 // Test imports removed for production
 import { dataCollectionScheduler } from './dataCollectionScheduler';
 import { beehiivScheduler } from './beehiivScheduler';
@@ -491,6 +494,64 @@ app.get('/events', getEventsHandler);
 app.get('/sports', getSportsHandler);
 app.get('/weather', getWeatherHandler);
 app.get('/weather-email', getWeatherForEmailHandler);
+app.get('/test-email', testEmailHandler);
+
+// MJML preview endpoint
+app.get('/mjml-preview', async (req, res) => {
+  try {
+    const city = (req.query.city as string) || 'Miami';
+    const today = new Date().toISOString().split('T')[0];
+    
+    // MJML sistem yarının email'i için bugünün weather verisini kullanır
+    // Bu yüzden bugünün cache'ini al, eğer yoksa bugünün weather'ını çek
+    let cachedData = await getCachedCityDataForToday(city);
+    
+    // Eğer cache'de weather yoksa, direkt weather-email endpoint'inden al
+    if (!cachedData || !cachedData.weather) {
+      try {
+        // Email sistemi yarının email'i için bugünün weather verisini kullanır
+        const weatherResponse = await fetch(`http://localhost:4000/weather-email?city=${encodeURIComponent(city)}&date=${today}`);
+        const weatherData = await weatherResponse.json();
+        
+        if (cachedData) {
+          cachedData.weather = weatherData.weather;
+        } else {
+          // Eğer hiç cache yoksa, minimal bir cache oluştur
+          // Tarih yarın için (email yarın gönderilecek)
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          
+          cachedData = {
+            city,
+            date: tomorrow.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+            weather: weatherData.weather,
+            todaysBrief: [],
+            news: [],
+            events: [],
+            sports: null,
+            cached_at: new Date().toISOString()
+          };
+        }
+      } catch (fetchError) {
+        console.error('❌ Failed to fetch weather data:', fetchError);
+      }
+    }
+    
+    if (!cachedData) {
+      return res.status(404).send(`<h1>No cached data found for ${city}</h1><p>Try running data collection first or use a different city.</p>`);
+    }
+    
+    const htmlContent = await renderMjml(cachedData);
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(htmlContent);
+    
+  } catch (error: any) {
+    console.error('❌ MJML preview error:', error);
+    res.status(500).send(`<h1>MJML Preview Error</h1><pre>${error.message}</pre>`);
+  }
+});
+
 app.delete('/delete-user', deleteUserHandler);
 app.delete('/delete-city-data', deleteCityDataHandler);
 // Production: Test endpoints removed

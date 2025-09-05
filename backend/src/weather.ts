@@ -116,6 +116,13 @@ export const getWeatherForEmailHandler = async (req: Request, res: Response) => 
     let representativeWindDeg = current?.wind?.deg || 0;
     let representativeCondition = current?.weather?.[0]?.main || 'Unknown';
 
+    // Eğer forecast dilimi yoksa, current weather'dan değerleri al
+    if (slices.length === 0 && current) {
+      high = current.main?.temp || current.main?.temp_max || 0;
+      low = current.main?.temp || current.main?.temp_min || 0;
+      representativeCondition = current.weather?.[0]?.main || 'Unknown';
+    }
+
     slices.forEach((item: any, idx: number) => {
       const t = item?.main?.temp;
       const tMax = item?.main?.temp_max;
@@ -133,6 +140,16 @@ export const getWeatherForEmailHandler = async (req: Request, res: Response) => 
         representativeCondition = item?.weather?.[0]?.main || representativeCondition;
       }
     });
+
+    if (!isFinite(high) && current?.main?.temp) {
+      high = current.main.temp;
+    }
+    if (!isFinite(low) && current?.main?.temp) {
+      low = current.main.temp;
+    }
+    if (representativeCondition === 'Unknown' && current?.weather?.[0]?.main) {
+      representativeCondition = current.weather[0].main;
+    }
 
     const windMph = Math.round((representativeWindMps || 0) * 2.237);
 

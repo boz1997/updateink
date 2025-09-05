@@ -163,6 +163,22 @@ function getDefaultSponsors(): SponsorCard[][] {
   const DEFAULT_SPORT_EMOJI = '🏟️';
   const normalize = (s: string = '') => s.toLowerCase().replace(/[^a-z0-9]+/g, '');
 
+  // Weather condition to icon mapping
+  function getWeatherIcon(condition?: string): string {
+    if (!condition) return '☀️';
+    
+    const c = condition.toLowerCase();
+    if (c.includes('rain') || c.includes('drizzle')) return '🌧️';
+    if (c.includes('storm') || c.includes('thunder')) return '⛈️';
+    if (c.includes('snow')) return '❄️';
+    if (c.includes('cloud')) return '☁️';
+    if (c.includes('clear') || c.includes('sunny')) return '☀️';
+    if (c.includes('fog') || c.includes('mist')) return '🌫️';
+    if (c.includes('wind')) return '💨';
+    
+    return '☀️'; // default
+  }
+
   // Heuristics to pick the best emoji from sport/title text
   function pickSportEmoji(sport?: string, title?: string): string {
     const bag = `${sport || ''} ${title || ''}`.toLowerCase();
@@ -189,10 +205,16 @@ function getDefaultSponsors(): SponsorCard[][] {
 
 
 export async function mapToVM(content: CachedCityData): Promise<EmailVM> {
+  // Weather data comes from weather-email endpoint format:
+  // { condition: "Rain", high: 82, low: 78, wind: "SSW 23-28 mph", date: "Friday, September 5" }
   const weather = {
-    icon: content.weather?.current?.icon || '☀️',
-    condition: content.weather?.current?.condition || content.weather?.condition || 'Clear',
-    detail: `${content.weather?.current?.temp ?? (content.weather?.high && content.weather?.low ? `High- ${content.weather.high} Low- ${content.weather.low}` : '--')}° • ${content.weather?.current?.wind ?? content.weather?.wind ?? ''}`.trim()
+    icon: getWeatherIcon(content.weather?.condition) || '☀️',
+    condition: content.weather?.condition || 'Clear',
+    detail: content.weather?.high && content.weather?.low 
+      ? `High ${content.weather.high}°F, Low ${content.weather.low}°F • ${content.weather.wind || 'N/A'}`
+      : content.weather?.condition 
+        ? `Weather: ${content.weather.condition}`
+        : 'Weather data unavailable'
   };
 
   // Fetch sponsors from database based on city
